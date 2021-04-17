@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spoonless/sirencall.git.git"
+    "url": "git+https://github.com/spoonless/sirencall.git"
   },
   "keywords": [
     "JSON",
@@ -21,9 +21,9 @@
   "author": "David Gayerie",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/spoonless/sirencall.got/issues"
+    "url": "https://github.com/spoonless/sirencall/issues"
   },
-  "homepage": "https://github.com/spoonless/sirencall.got#readme",
+  "homepage": "https://github.com/spoonless/sirencall#readme",
   "devDependencies": {
     "qunit": "^2.15.0"
   }
