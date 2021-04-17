@@ -1,0 +1,29 @@
+{
+  "name": "sirencall",
+  "version": "1.0.0",
+  "description": "A lightweight library to easily integrate JSON Hypermedia with Siren format. https://github.com/kevinswiber/siren",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/spoonless/sirencall.git.git"
+  },
+  "keywords": [
+    "JSON",
+    "Hypermedia",
+    "Siren",
+    "REST",
+    "HATEOAS"
+  ],
+  "author": "David Gayerie",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/spoonless/sirencall.got/issues"
+  },
+  "homepage": "https://github.com/spoonless/sirencall.got#readme",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
