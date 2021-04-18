@@ -15,8 +15,8 @@ class EntityWrapper {
     }
 
     hasClass(c) {
-        if (this.class) {
-            return this.class.includes(c);
+        if (this[entitySymbol].class) {
+            return this[entitySymbol].class.includes(c);
         }
         return false;
     }
@@ -154,11 +154,6 @@ $iren.unwrap = function (o, factoryCallback) {
         e = factoryCallback ? factoryCallback(o.properties) : o.properties;
     }
     e[sirenSymbol] = new EntityWrapper(o);
-    Reflect.defineProperty(e, '$iren', {
-        get: function () {
-            return this[sirenSymbol];
-        }
-    });
     return e;
 }
 
