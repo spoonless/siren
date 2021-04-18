@@ -42,7 +42,13 @@ test('can unwrap entity without property', assert => {
 test('unwrap already unwrapped entity has no effect', assert => {
     const r = $iren.unwrap(entity);
 
-    assert.equal(r, $iren.unwrap(r));
+    assert.equal($iren.unwrap(r), r);
+});
+
+test('unwrap entity context returns entity', assert => {
+    const r = $iren.unwrap(entity);
+
+    assert.equal($iren.unwrap($iren(r)), r);
 });
 
 test('can safely get siren context for null', assert => {
@@ -110,12 +116,6 @@ test('can process entity with no title', assert => {
 QUnit.module('For links, $iren', {
     beforeEach: function () {
         entity = {
-            'class': ['entityclass'],
-            'title': "my entity",
-            'properties': {
-                'value': 42,
-                'name': 'siren'
-            },
             'links': [
                 {
                     'rel': 'self',
@@ -261,4 +261,71 @@ test('can get no links when no link provided in the entity', assert => {
     const links = $iren(r).links("self");
 
     assert.deepEqual(links, []);
+});
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For sub-entities, $iren', {
+    beforeEach: function () {
+        entity = {
+            'entities': [
+                {
+                    'class': ['myclass'],
+                    'title': 'my sub entity',
+                    'rel': 'alternate',
+                    'href': 'http://localhost'
+                },
+                {
+                    'rel': 'item',
+                    'href': 'http://localhost'
+                }
+            ]
+        };
+    }
+});
+
+test('can check sub entity by rel', assert => {
+    const r = $iren.unwrap(entity);
+
+    assert.true($iren(r).hasEntity("alternate"));
+    assert.true($iren(r).hasEntity("item"));
+    assert.false($iren(r).hasEntity("collection"));
+});
+
+test('can check sub entity by rel after getting one entity', assert => {
+    const r = $iren.unwrap(entity);
+
+    $iren(r).entity("alternate");
+
+    assert.true($iren(r).hasEntity("alternate"));
+    assert.true($iren(r).hasEntity("item"));
+    assert.false($iren(r).hasEntity("collection"));
+});
+
+test('can get sub entity by rel', assert => {
+    const r = $iren.unwrap(entity);
+
+    const e = $iren(r).entity("alternate");
+
+    assert.equal($iren(e).title, 'my sub entity');
+    assert.true($iren(e).hasClass('myclass'));
+    assert.true($iren.isEntity(e));
+    assert.true($iren.isSubEntity(e));
+    assert.true($iren.isSubEntityEmbeddedLink(e));
+});
+
+test('can get sub entities by rel', assert => {
+    const r = $iren.unwrap(entity);
+
+    const e = $iren(r).entities("alternate");
+
+    assert.deepEqual(e, [{}]);
+});
+
+test('cannot get sub entity', assert => {
+    const r = $iren.unwrap({});
+
+    const e = $iren(r).entity("alternate");
+
+    assert.false($iren.isSubEntityEmbeddedLink(e));
 });

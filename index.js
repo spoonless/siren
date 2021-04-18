@@ -1,4 +1,6 @@
 const sirenSymbol = Symbol();
+const entitySymbol = Symbol();
+const subEntitiesSymbol = Symbol();
 
 class SirenError extends Error {
     constructor(msg) {
@@ -53,7 +55,7 @@ async function executeRequest(entity, method, init) {
 
 class EntityWrapper {
     constructor(e) {
-        this[sirenSymbol] = e;
+        this[entitySymbol] = e;
     }
 
     hasClass(c) {
@@ -61,15 +63,15 @@ class EntityWrapper {
     }
 
     get class() {
-        return this[sirenSymbol].class || [];
+        return this[entitySymbol].class || [];
     }
 
     get title() {
-        return this[sirenSymbol].title || '';
+        return this[entitySymbol].title || '';
     }
 
     links(param) {
-        const links = this[sirenSymbol].links || [];
+        const links = this[entitySymbol].links || [];
         if (!param) {
             return links;
         }
@@ -114,6 +116,39 @@ class EntityWrapper {
         return emptyLink;
     }
 
+    hasEntity(rel) {
+        if (this[entitySymbol].entities) {
+            for (const e of this[entitySymbol].entities) {
+                if (e.rel === rel) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return this.entity(rel) !== emptyEntity;
+    }
+
+    entities(rel) {
+        if (this[entitySymbol].entities) {
+            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => $iren.unwrap(e));
+            delete this[entitySymbol].entities;
+        }
+        if (!rel) {
+            return this[subEntitiesSymbol] || [];
+        } else {
+            return this.entities().filter(e => $iren(e)[entitySymbol].rel === rel);
+        }
+    }
+
+    entity(rel) {
+        for (const e of this.entities()) {
+            if ($iren(e)[entitySymbol].rel === rel) {
+                return e;
+            }
+        }
+        return emptyEntity;
+    }
+
     request(param, init = {}) {
         const link = this.link(param);
         if (!link.href) {
@@ -152,6 +187,9 @@ $iren.unwrap = function (o) {
     if (o[sirenSymbol]) {
         return o;
     }
+    if (o[entitySymbol]) {
+        return o[entitySymbol].properties;
+    }
     if (!o.properties) {
         o.properties = {};
     }
@@ -174,11 +212,11 @@ $iren.isLink = function (l) {
 }
 
 $iren.isSubEntity = function (o) {
-    return !!($iren.isEntity(o) && o[sirenSymbol].rel);
+    return !!($iren.isEntity(o) && $iren(o)[entitySymbol].rel);
 }
 
 $iren.isSubEntityEmbeddedLink = function (o) {
-    return !!($iren.isEntity(o) && $iren.isLink(o));
+    return !!($iren.isEntity(o) && $iren.isLink($iren(o)[entitySymbol]));
 }
 
 export default $iren;
@@ -186,6 +224,5 @@ export default $iren;
 /*
 * TODO
 * create an entity from a JS class or another objet
-* manage subentities
 * delete an entity?
 */
