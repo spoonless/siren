@@ -1,6 +1,7 @@
 const sirenSymbol = Symbol();
 const entitySymbol = Symbol();
 const subEntitiesSymbol = Symbol();
+const factoryRegitry = Symbol();
 
 class SirenError extends Error {
     constructor(msg) {
@@ -132,7 +133,7 @@ function $iren(o) {
     return o[sirenSymbol];
 }
 
-$iren.unwrap = function (o) {
+$iren.unwrap = function (o, factoryCallback) {
     if (!o) {
         return o;
     }
@@ -145,7 +146,13 @@ $iren.unwrap = function (o) {
     if (!o.properties) {
         o.properties = {};
     }
-    const e = o.properties;
+    let e;
+    if (factoryCallback) {
+        e = factoryCallback(o.properties);
+    } else {
+        const factoryCallback = $iren.findFactory(o.class);
+        e = factoryCallback ? factoryCallback(o.properties) : o.properties;
+    }
     e[sirenSymbol] = new EntityWrapper(o);
     Reflect.defineProperty(e, '$iren', {
         get: function () {
@@ -164,11 +171,31 @@ $iren.isLink = function (l) {
 }
 
 $iren.isSubEntity = function (o) {
-    return !!($iren.isEntity(o) && $iren(o).rel);
+    return !!(this.isEntity(o) && this(o).rel);
 }
 
 $iren.isSubEntityEmbeddedLink = function (o) {
-    return !!($iren.isEntity(o) && $iren.isLink($iren(o)));
+    return !!(this.isEntity(o) && this.isLink($iren(o)));
+}
+
+$iren.registerFactory = function (className, factoryCallback) {
+    if (!this[factoryRegitry]) {
+        this[factoryRegitry] = new Map();
+    }
+    this[factoryRegitry].set(className, factoryCallback);
+}
+
+$iren.findFactory = function (classNames) {
+    const factoryRegistry = this[factoryRegitry];
+    if (factoryRegistry) {
+        for (const className of classNames) {
+            const factory = factoryRegistry.get(className);
+            if (factory) {
+                return factory;
+            }
+        }
+    }
+    return null;
 }
 
 $iren.request = function (o) {
@@ -193,9 +220,3 @@ $iren.request = function (o) {
 }
 
 export default $iren;
-
-/*
-* TODO
-* create an entity from a JS class or another objet
-* delete an entity?
-*/

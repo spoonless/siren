@@ -348,7 +348,7 @@ QUnit.module('For creating request, $iren', {
                     'href': 'http://localhost/subentity'
                 }
             ],
-            links : [
+            links: [
                 {
                     'rel': 'self',
                     'href': 'http://localhost/self'
@@ -416,4 +416,79 @@ test('can get request for sub entity embedded link', assert => {
     assert.equal(r.method, 'GET');
     assert.equal(r.url, 'http://localhost/subentity');
     assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+});
+
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('With factory, $iren', {
+    beforeEach: function () {
+        entity = {
+            class: ['customClass'],
+            properties: {
+                'name': 'myentity',
+            },
+            entities: [
+                {
+                    class: ['customClass'],
+                    rel: 'alternate',
+                    properties: {
+                        'name': 'mysubentity',
+                    }
+                },
+                {
+                    class: ['collectionClass', 'customClass'],
+                    rel: 'collection',
+                    properties: {
+                        'name': 'mysubcollection',
+                    }
+                }
+            ]
+        };
+    }
+});
+
+class MyCustomClass {
+
+    constructor(properties) {
+        Object.assign(this, properties);
+    }
+
+}
+
+test('can unwrap with custom class', assert => {
+    const e = $iren.unwrap(entity, p => new MyCustomClass(p));
+
+    assert.true(e instanceof MyCustomClass);
+    assert.equal(e.name, 'myentity');
+});
+
+
+test('can register factory for custom class', assert => {
+    $iren.registerFactory('customClass', p => new MyCustomClass(p));
+
+    const e = $iren.unwrap(entity);
+
+    assert.true(e instanceof MyCustomClass);
+});
+
+test('can register factory for custom class for sub entity', assert => {
+    $iren.registerFactory('customClass', p => new MyCustomClass(p));
+    const e = $iren.unwrap(entity);
+
+    const sube = $iren(e).entity('alternate');
+
+    assert.true(sube instanceof MyCustomClass);
+    assert.equal(sube.name, 'mysubentity');
+});
+
+
+test('can register factory for custom class for sub entity with multiple classes', assert => {
+    $iren.registerFactory('customClass', p => new MyCustomClass(p));
+    const e = $iren.unwrap(entity);
+
+    const sube = $iren(e).entity('collection');
+
+    assert.true(sube instanceof MyCustomClass);
+    assert.equal(sube.name, 'mysubcollection');
 });
