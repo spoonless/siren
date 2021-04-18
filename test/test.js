@@ -363,15 +363,18 @@ QUnit.module('For creating request, $iren', {
     }
 });
 
-// Stub for Request class
-global.Request = function (url, options) {
-    this.url = url;
-    this.method = options.method;
-    this.headers = options.headers;
-}
+// Create stubs when running test outside a browser
+if (typeof global !== 'undefined') {
+    // Stub for Request class
+    global.Request = function (url, options) {
+        this.url = url;
+        this.method = options.method;
+        this.headers = options.headers;
+    }
 
-// Stub for Headers class
-global.Headers = Map;
+    // Stub for Headers class
+    global.Headers = Map;
+}
 
 test('can get request when self link available', assert => {
     const e = $iren.unwrap(entity);
