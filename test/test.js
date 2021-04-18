@@ -111,6 +111,12 @@ test('can process entity with no title', assert => {
     assert.equal($iren(r).title, '');
 });
 
+test('can ask for siren context on context itself', assert => {
+    const e = $iren.unwrap(entity);
+
+    assert.equal($iren($iren(e)).title, 'my entity');
+});
+
 ///////////////////////////////////////////////////////////////////////
 
 QUnit.module('For links, $iren', {

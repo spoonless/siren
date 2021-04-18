@@ -120,7 +120,13 @@ const emptyEntity = Object.freeze(new EntityWrapper({}));
 const emptyLink = Object.freeze({});
 
 function $iren(o) {
-    if (!o || !o[sirenSymbol]) {
+    if (!o) {
+        return emptyEntity;
+    }
+    if (o[entitySymbol]) {
+        return o;
+    }
+    if (!o[sirenSymbol]) {
         return emptyEntity;
     }
     return o[sirenSymbol];
