@@ -329,3 +329,85 @@ test('cannot get sub entity', assert => {
 
     assert.false($iren.isSubEntityEmbeddedLink(e));
 });
+
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For creating request, $iren', {
+    beforeEach: function () {
+        entity = {
+            'entities': [
+                {
+                    'rel': 'alternate',
+                    'href': 'http://localhost/subentity'
+                }
+            ],
+            links : [
+                {
+                    'rel': 'self',
+                    'href': 'http://localhost/self'
+                },
+                {
+                    'rel': 'alternate',
+                    'href': 'http://localhost/alternate',
+                    'type': 'image/png'
+                }
+            ]
+        };
+    }
+});
+
+// Stub for Request class
+global.Request = function (url, options) {
+    this.url = url;
+    this.method = options.method;
+    this.headers = options.headers;
+}
+
+// Stub for Headers class
+global.Headers = Map;
+
+test('can get request when self link available', assert => {
+    const e = $iren.unwrap(entity);
+
+    const r = $iren.request(e);
+
+    assert.equal(r.method, 'GET');
+    assert.equal(r.url, 'http://localhost/self');
+    assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+});
+
+test('can get request with rel', assert => {
+    const e = $iren.unwrap(entity);
+
+    const r = $iren.request($iren(e).link('alternate'));
+
+    assert.equal(r.method, 'GET');
+    assert.equal(r.url, 'http://localhost/alternate');
+});
+
+test('can get request with specific content-type', assert => {
+    const e = $iren.unwrap(entity);
+
+    const r = $iren.request($iren(e).link('alternate'));
+
+    assert.equal(r.headers.get('Accept'), 'image/png');
+});
+
+test('cannot get request when self link not available', assert => {
+    const e = $iren.unwrap({});
+
+    assert.throws(() => {
+        $iren.request(e);
+    })
+});
+
+test('can get request for sub entity embedded link', assert => {
+    const e = $iren.unwrap(entity);
+
+    const r = $iren.request($iren(e).entity('alternate'));
+
+    assert.equal(r.method, 'GET');
+    assert.equal(r.url, 'http://localhost/subentity');
+    assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+});

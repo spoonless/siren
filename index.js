@@ -8,16 +8,6 @@ class SirenError extends Error {
     }
 }
 
-function createRequest(link, init) {
-    let internalInit = init;
-    if (link.type) {
-        internalInit = Object.create(internalInit);
-        internalInit.headers = new Headers(init.headers || []);
-        internalInit.headers.append('Accept', link.type);
-    }
-    return new Request(link.href, internalInit);
-}
-
 class EntityWrapper {
     constructor(e) {
         this[entitySymbol] = e;
@@ -36,6 +26,14 @@ class EntityWrapper {
 
     get title() {
         return this[entitySymbol].title || '';
+    }
+
+    get href() {
+        return this[entitySymbol].href;
+    }
+
+    get rel() {
+        return this[entitySymbol].rel;
     }
 
     links(param) {
@@ -104,29 +102,17 @@ class EntityWrapper {
         if (!rel) {
             return this[subEntitiesSymbol] || [];
         } else {
-            return this.entities().filter(e => $iren(e)[entitySymbol].rel === rel);
+            return this.entities().filter(e => $iren(e).rel === rel);
         }
     }
 
     entity(rel) {
         for (const e of this.entities()) {
-            if ($iren(e)[entitySymbol].rel === rel) {
+            if ($iren(e).rel === rel) {
                 return e;
             }
         }
         return emptyEntity;
-    }
-
-    request(param, init = {}) {
-        const link = this.link(param);
-        if (!link.href) {
-            throw new SirenError(`No href found for link ${param}`);
-        }
-        return createRequest(link, init);
-    }
-
-    requests(param, init) {
-        return this.links(param).map(l => createRequest(l, init));
     }
 }
 
@@ -172,11 +158,32 @@ $iren.isLink = function (l) {
 }
 
 $iren.isSubEntity = function (o) {
-    return !!($iren.isEntity(o) && $iren(o)[entitySymbol].rel);
+    return !!($iren.isEntity(o) && $iren(o).rel);
 }
 
 $iren.isSubEntityEmbeddedLink = function (o) {
-    return !!($iren.isEntity(o) && $iren.isLink($iren(o)[entitySymbol]));
+    return !!($iren.isEntity(o) && $iren.isLink($iren(o)));
+}
+
+$iren.request = function (o) {
+    let link;
+    if ($iren.isLink(o)) {
+        link = o;
+    } else if ($iren.isLink($iren(o))) {
+        link = $iren(o)
+    } else {
+        link = $iren(o).link('self');
+    }
+    if (!$iren.isLink(link)) {
+        throw new SirenError('No link information found to create request for this entity');
+    }
+    const headers = new Headers();
+    if (link.type) {
+        headers.set('Accept', link.type);
+    } else {
+        headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+    }
+    return new Request(link.href, { method: 'GET', headers: headers });
 }
 
 export default $iren;
