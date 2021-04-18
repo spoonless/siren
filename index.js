@@ -24,7 +24,10 @@ class EntityWrapper {
     }
 
     hasClass(c) {
-        return this.class.includes(c);
+        if (this.class) {
+            return this.class.includes(c);
+        }
+        return false;
     }
 
     get class() {
