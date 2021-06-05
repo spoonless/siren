@@ -9,6 +9,14 @@ class SirenError extends Error {
     }
 }
 
+function areEqual(a, b) {
+    if (Array.isArray(a)) {
+        return Array.isArray(b) && a.every(e => b.includes(e));
+    } else {
+        return a === b;
+    }
+}
+
 class EntityWrapper {
     constructor(e) {
         this[entitySymbol] = e;
@@ -43,11 +51,14 @@ class EntityWrapper {
             return links;
         }
         if (typeof param === 'string') {
-            return links.filter(l => l.rel === param);
+            param = [param];
+        }
+        if (Array.isArray(param)) {
+            return links.filter(l => areEqual(l.rel, param));
         }
         return links.filter(l => {
             for (const p in param) {
-                if (param[p] !== l[p]) {
+                if (!areEqual(param[p], l[p])) {
                     return false;
                 }
             }
@@ -61,8 +72,11 @@ class EntityWrapper {
 
     link(param) {
         if (typeof param === 'string') {
+            param = [param];
+        }
+        if (Array.isArray(param)) {
             for (const l of this.links()) {
-                if (l.rel === param) {
+                if (areEqual(l.rel, param)) {
                     return l;
                 }
             }
@@ -70,7 +84,7 @@ class EntityWrapper {
             for (const l of this.links()) {
                 let found = true;
                 for (const p in param) {
-                    if (param[p] !== l[p]) {
+                    if (!areEqual(param[p], l[p])) {
                         found = false;
                         break;
                     }
@@ -85,8 +99,11 @@ class EntityWrapper {
 
     hasEntity(rel) {
         if (this[entitySymbol].entities) {
+            if (typeof rel === 'string') {
+                rel = [rel];
+            }
             for (const e of this[entitySymbol].entities) {
-                if (e.rel === rel) {
+                if (areEqual(e.rel, rel)) {
                     return true;
                 }
             }
@@ -102,14 +119,19 @@ class EntityWrapper {
         }
         if (!rel) {
             return this[subEntitiesSymbol] || [];
-        } else {
-            return this.entities().filter(e => $iren(e).rel === rel);
         }
+        if (typeof rel === 'string') {
+            rel = [rel];
+        }
+        return this.entities().filter(e => areEqual($iren(e).rel, rel));
     }
 
     entity(rel) {
+        if (typeof rel === 'string') {
+            rel = [rel];
+        }
         for (const e of this.entities()) {
-            if ($iren(e).rel === rel) {
+            if (areEqual($iren(e).rel, rel)) {
                 return e;
             }
         }

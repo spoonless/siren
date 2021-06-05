@@ -124,17 +124,21 @@ QUnit.module('For links, $iren', {
         entity = {
             'links': [
                 {
-                    'rel': 'self',
+                    'rel': ['self'],
                     'href': 'http://localhost/json',
                     'type': 'application/json'
                 },
                 {
-                    'rel': 'alternate',
+                    'rel': ['collection', 'author'],
+                    'href': 'http://localhost/authors'
+                },
+                {
+                    'rel': ['alternate'],
                     'href': 'http://localhost/image',
                     'type': 'image/png'
                 },
                 {
-                    'rel': 'alternate',
+                    'rel': ['alternate'],
                     'href': 'http://localhost/pdf',
                     'type': 'application/pdf'
                 }
@@ -147,9 +151,11 @@ test('can check link declaration', assert => {
     const r = $iren.unwrap(entity);
 
     assert.true($iren(r).hasLink('self'));
-    assert.true($iren(r).hasLink({ rel: 'self' }));
-    assert.true($iren(r).hasLink({ rel: 'self', type: 'application/json' }));
+    assert.true($iren(r).hasLink(['self']));
+    assert.true($iren(r).hasLink({ rel: ['self'] }));
+    assert.true($iren(r).hasLink({ rel: ['self'], type: 'application/json' }));
     assert.true($iren(r).hasLink('alternate'));
+    assert.true($iren(r).hasLink(['author', 'collection']));
 
     assert.false($iren(r).hasLink('collection'));
     assert.false($iren(r).hasLink({ rel: 'self', type: 'application/pdf' }));
@@ -159,7 +165,7 @@ test('can check link for entity without any link', assert => {
     const r = $iren.unwrap({});
 
     assert.false($iren(r).hasLink('self'));
-    assert.false($iren(r).hasLink({ rel: 'self' }));
+    assert.false($iren(r).hasLink({ rel: ['self'] }));
 });
 
 test('can get link by rel', assert => {
@@ -168,7 +174,7 @@ test('can get link by rel', assert => {
     const link = $iren(r).link('self');
 
     assert.deepEqual(link, {
-        'rel': 'self',
+        'rel': ['self'],
         'href': 'http://localhost/json',
         'type': 'application/json'
     });
@@ -182,7 +188,7 @@ test('can get first link when multiple links', assert => {
     const link = $iren(r).link('alternate');
 
     assert.deepEqual(link, {
-        'rel': 'alternate',
+        'rel': ['alternate'],
         'href': 'http://localhost/image',
         'type': 'image/png'
     });
@@ -191,10 +197,10 @@ test('can get first link when multiple links', assert => {
 test('can get link by multiple criteria', assert => {
     const r = $iren.unwrap(entity);
 
-    const link = $iren(r).link({ rel: 'self', type: 'application/json' });
+    const link = $iren(r).link({ rel: ['self'], type: 'application/json' });
 
     assert.deepEqual(link, {
-        'rel': 'self',
+        'rel': ['self'],
         'href': 'http://localhost/json',
         'type': 'application/json'
     });
@@ -206,7 +212,7 @@ test('can get link by criteria without rel', assert => {
     const link = $iren(r).link({ type: 'application/pdf' });
 
     assert.deepEqual(link, {
-        'rel': 'alternate',
+        'rel': ['alternate'],
         'href': 'http://localhost/pdf',
         'type': 'application/pdf'
     });
@@ -220,19 +226,38 @@ test('can get no link when no link provided in the entity', assert => {
     assert.deepEqual(link, {});
 });
 
-test('can get all links when multiple links', assert => {
+test('can get all links when multiple links with one rel', assert => {
     const r = $iren.unwrap(entity);
 
     const links = $iren(r).links('alternate');
 
     assert.deepEqual(links, [
         {
-            'rel': 'alternate',
+            'rel': ['alternate'],
             'href': 'http://localhost/image',
             'type': 'image/png'
         },
         {
-            'rel': 'alternate',
+            'rel': ['alternate'],
+            'href': 'http://localhost/pdf',
+            'type': 'application/pdf'
+        }
+    ]);
+});
+
+test('can get all links when multiple links with an array of rel', assert => {
+    const r = $iren.unwrap(entity);
+
+    const links = $iren(r).links(['alternate']);
+
+    assert.deepEqual(links, [
+        {
+            'rel': ['alternate'],
+            'href': 'http://localhost/image',
+            'type': 'image/png'
+        },
+        {
+            'rel': ['alternate'],
             'href': 'http://localhost/pdf',
             'type': 'application/pdf'
         }
@@ -242,11 +267,11 @@ test('can get all links when multiple links', assert => {
 test('can get links by multiple criteria', assert => {
     const r = $iren.unwrap(entity);
 
-    const links = $iren(r).links({ rel: 'self', type: 'application/json' });
+    const links = $iren(r).links({ rel: ['self'], type: 'application/json' });
 
     assert.deepEqual(links, [
         {
-            'rel': 'self',
+            'rel': ['self'],
             'href': 'http://localhost/json',
             'type': 'application/json'
         }
@@ -278,11 +303,15 @@ QUnit.module('For sub-entities, $iren', {
                 {
                     'class': ['myclass'],
                     'title': 'my sub entity',
-                    'rel': 'alternate',
+                    'rel': ['alternate'],
                     'href': 'http://localhost'
                 },
                 {
-                    'rel': 'item',
+                    'rel': ['item'],
+                    'href': 'http://localhost'
+                },
+                {
+                    'rel': ['collection', 'search'],
                     'href': 'http://localhost'
                 }
             ]
@@ -294,7 +323,9 @@ test('can check sub entity by rel', assert => {
     const r = $iren.unwrap(entity);
 
     assert.true($iren(r).hasEntity("alternate"));
+    assert.true($iren(r).hasEntity(["alternate"]));
     assert.true($iren(r).hasEntity("item"));
+    assert.true($iren(r).hasEntity(["search", "collection"]));
     assert.false($iren(r).hasEntity("collection"));
 });
 
@@ -320,7 +351,7 @@ test('can get sub entity by rel', assert => {
     assert.true($iren.isSubEntityEmbeddedLink(e));
 });
 
-test('can get sub entities by rel', assert => {
+test('can get sub entities by one rel', assert => {
     const r = $iren.unwrap(entity);
 
     const e = $iren(r).entities("alternate");
@@ -328,7 +359,15 @@ test('can get sub entities by rel', assert => {
     assert.deepEqual(e, [{}]);
 });
 
-test('cannot get sub entity', assert => {
+test('can get sub entities by an array of rel', assert => {
+    const r = $iren.unwrap(entity);
+
+    const e = $iren(r).entities(["search", "collection"]);
+
+    assert.deepEqual(e, [{}]);
+});
+
+test('cannot get sub entity when it does not exist', assert => {
     const r = $iren.unwrap({});
 
     const e = $iren(r).entity("alternate");
@@ -344,17 +383,17 @@ QUnit.module('For creating request, $iren', {
         entity = {
             'entities': [
                 {
-                    'rel': 'alternate',
+                    'rel': ['alternate'],
                     'href': 'http://localhost/subentity'
                 }
             ],
             links: [
                 {
-                    'rel': 'self',
+                    'rel': ['self'],
                     'href': 'http://localhost/self'
                 },
                 {
-                    'rel': 'alternate',
+                    'rel': ['alternate'],
                     'href': 'http://localhost/alternate',
                     'type': 'image/png'
                 }
@@ -434,14 +473,14 @@ QUnit.module('With factory, $iren', {
             entities: [
                 {
                     class: ['customClass'],
-                    rel: 'alternate',
+                    rel: ['alternate'],
                     properties: {
                         'name': 'mysubentity',
                     }
                 },
                 {
                     class: ['collectionClass', 'customClass'],
-                    rel: 'collection',
+                    rel: ['collection'],
                     properties: {
                         'name': 'mysubcollection',
                     }
