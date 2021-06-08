@@ -78,7 +78,7 @@ class EntityWrapper {
         }
         if (Array.isArray(param)) {
             for (const l of this.links()) {
-                if (areEqual(param, l.rel, )) {
+                if (areEqual(param, l.rel)) {
                     return l;
                 }
             }
