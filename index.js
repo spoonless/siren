@@ -1,5 +1,6 @@
 const entitySymbol = Symbol();
 const subEntitiesSymbol = Symbol();
+const basePathSymbol = Symbol();
 
 class SirenError extends Error {
     constructor(msg) {
@@ -16,8 +17,23 @@ function areEqual(a, b) {
 }
 
 class EntityWrapper {
-    constructor(e) {
+    constructor(e, basePath) {
         this[entitySymbol] = e;
+        this[basePathSymbol] = basePath;
+        this._toAbsolutePaths();
+    }
+
+    _toAbsolutePaths() {
+        if (this[basePathSymbol]) {
+            if (typeof this[entitySymbol].href === 'string') {
+                this[entitySymbol].href = new URL(this[entitySymbol].href, this[basePathSymbol]).href;
+            }
+            for (const l of this.links()) {
+                if (typeof l.href === 'string') {
+                    l.href = new URL(l.href, this[basePathSymbol]).href;
+                }
+            }
+        }
     }
 
     hasClass(c) {
@@ -116,7 +132,7 @@ class EntityWrapper {
 
     entities(rel) {
         if (this[entitySymbol].entities) {
-            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e));
+            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[basePathSymbol]));
             delete this[entitySymbol].entities;
         }
         if (!rel) {
@@ -148,14 +164,14 @@ const siren = {
     isEntity: function (o) {
         return o instanceof EntityWrapper;
     },
-    entity: function (o) {
+    entity: function (o, basePath) {
         if (!o) {
             return emptyEntity;
         }
         if (siren.isEntity(o)) {
             return o;
         }
-        return new EntityWrapper(o);
+        return new EntityWrapper(o, basePath);
     },
     isLink: function (l) {
         return !!(l && l.href && l.rel);

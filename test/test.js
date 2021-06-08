@@ -433,3 +433,54 @@ test('can get request for sub entity embedded link', assert => {
     assert.equal(r.url, 'http://localhost/subentity');
     assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
 });
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For resolving URL, siren', {
+    beforeEach: function () {
+        entity = {
+            'entities': [
+                {
+                    'rel': ['item'],
+                    'href': './subentity',
+                    'links': [
+                        {
+                            'rel': ['self'],
+                            'href': './subentity/self'
+                        }
+                    ]
+                }
+            ],
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': './self'
+                }
+            ]
+        };
+    }
+});
+
+test('can create absolute URL for link', assert => {
+    const e = siren.entity(entity, 'http://localhost');
+
+    const l = e.link('self');
+
+    assert.equal(l.href, 'http://localhost/self');
+});
+
+test('can create absolute URL for sub-entity', assert => {
+    const e = siren.entity(entity, 'http://localhost');
+
+    const subEntity = e.entity('item');
+
+    assert.equal(subEntity.href, 'http://localhost/subentity');
+});
+
+test('can create absolute URL for sub-entity link', assert => {
+    const e = siren.entity(entity, 'http://localhost');
+
+    const l = e.entity('item').link('self');
+
+    assert.equal(l.href, 'http://localhost/subentity/self');
+});
