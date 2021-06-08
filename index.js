@@ -1,7 +1,5 @@
-const sirenSymbol = Symbol();
 const entitySymbol = Symbol();
 const subEntitiesSymbol = Symbol();
-const factoryRegitry = Symbol();
 
 class SirenError extends Error {
     constructor(msg) {
@@ -37,6 +35,10 @@ class EntityWrapper {
         return this[entitySymbol].title || '';
     }
 
+    get properties() {
+        return this[entitySymbol].properties || {};
+    }
+
     get href() {
         return this[entitySymbol].href;
     }
@@ -67,7 +69,7 @@ class EntityWrapper {
     }
 
     hasLink(param) {
-        return $iren.isLink(this.link(param));
+        return siren.isLink(this.link(param));
     }
 
     link(param) {
@@ -114,7 +116,7 @@ class EntityWrapper {
 
     entities(rel) {
         if (this[entitySymbol].entities) {
-            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => $iren.unwrap(e));
+            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e));
             delete this[entitySymbol].entities;
         }
         if (!rel) {
@@ -123,7 +125,7 @@ class EntityWrapper {
         if (typeof rel === 'string') {
             rel = [rel];
         }
-        return this.entities().filter(e => areEqual($iren(e).rel, rel));
+        return this.entities().filter(e => areEqual(e.rel, rel));
     }
 
     entity(rel) {
@@ -131,7 +133,7 @@ class EntityWrapper {
             rel = [rel];
         }
         for (const e of this.entities()) {
-            if (areEqual($iren(e).rel, rel)) {
+            if (areEqual(e.rel, rel)) {
                 return e;
             }
         }
@@ -142,98 +144,46 @@ class EntityWrapper {
 const emptyEntity = Object.freeze(new EntityWrapper({}));
 const emptyLink = Object.freeze({});
 
-function $iren(o) {
-    if (!o) {
-        return emptyEntity;
-    }
-    if (o[entitySymbol]) {
-        return o;
-    }
-    if (!o[sirenSymbol]) {
-        return emptyEntity;
-    }
-    return o[sirenSymbol];
-}
-
-$iren.unwrap = function (o, factoryCallback) {
-    if (!o) {
-        return o;
-    }
-    if (o[sirenSymbol]) {
-        return o;
-    }
-    if (o[entitySymbol]) {
-        return o[entitySymbol].properties;
-    }
-    if (!o.properties) {
-        o.properties = {};
-    }
-    let e;
-    if (factoryCallback) {
-        e = factoryCallback(o.properties);
-    } else {
-        const factoryCallback = $iren.findFactory(o.class);
-        e = factoryCallback ? factoryCallback(o.properties) : o.properties;
-    }
-    e[sirenSymbol] = new EntityWrapper(o);
-    return e;
-}
-
-$iren.isEntity = function (o) {
-    return !!(o && o[sirenSymbol]);
-}
-
-$iren.isLink = function (l) {
-    return !!(l && l.href && l.rel);
-}
-
-$iren.isSubEntity = function (o) {
-    return !!(this.isEntity(o) && this(o).rel);
-}
-
-$iren.isSubEntityEmbeddedLink = function (o) {
-    return !!(this.isEntity(o) && this.isLink($iren(o)));
-}
-
-$iren.registerFactory = function (className, factoryCallback) {
-    if (!this[factoryRegitry]) {
-        this[factoryRegitry] = new Map();
-    }
-    this[factoryRegitry].set(className, factoryCallback);
-}
-
-$iren.findFactory = function (classNames) {
-    const factoryRegistry = this[factoryRegitry];
-    if (factoryRegistry) {
-        for (const className of classNames) {
-            const factory = factoryRegistry.get(className);
-            if (factory) {
-                return factory;
-            }
+const siren = {
+    isEntity: function (o) {
+        return o instanceof EntityWrapper;
+    },
+    entity: function (o) {
+        if (!o) {
+            return emptyEntity;
         }
+        if (siren.isEntity(o)) {
+            return o;
+        }
+        return new EntityWrapper(o);
+    },
+    isLink: function (l) {
+        return !!(l && l.href && l.rel);
+    },
+    isSubEntity: function (o) {
+        return !!(siren.isEntity(o) && o.rel);
+    },
+    isSubEntityEmbeddedLink: function (o) {
+        return !!(siren.isEntity(o) && siren.isLink(o));
+    },
+    request: function (o) {
+        let link;
+        if (siren.isLink(o)) {
+            link = o;
+        } else if (siren.isEntity(o)) {
+            link = o.link('self');
+        }
+        if (!siren.isLink(link)) {
+            throw new SirenError('No link information found to create request for this entity');
+        }
+        const headers = new Headers();
+        if (link.type) {
+            headers.set('Accept', link.type);
+        } else {
+            headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+        }
+        return new Request(link.href, { method: 'GET', headers: headers });
     }
-    return null;
 }
 
-$iren.request = function (o) {
-    let link;
-    if ($iren.isLink(o)) {
-        link = o;
-    } else if ($iren.isLink($iren(o))) {
-        link = $iren(o)
-    } else {
-        link = $iren(o).link('self');
-    }
-    if (!$iren.isLink(link)) {
-        throw new SirenError('No link information found to create request for this entity');
-    }
-    const headers = new Headers();
-    if (link.type) {
-        headers.set('Accept', link.type);
-    } else {
-        headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
-    }
-    return new Request(link.href, { method: 'GET', headers: headers });
-}
-
-export default $iren;
+export default siren;

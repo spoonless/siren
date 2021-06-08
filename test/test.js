@@ -1,10 +1,10 @@
-import $iren from '../index.js';
+import siren from '../index.js';
 
 const test = QUnit.test;
 
 let entity;
 
-QUnit.module('$iren', {
+QUnit.module('siren', {
     beforeEach: function () {
         entity = {
             'properties': {
@@ -15,63 +15,42 @@ QUnit.module('$iren', {
     }
 });
 
-test('unwrapped entity is not an entity', assert => {
-    assert.false($iren.isEntity(null));
-    assert.false($iren.isEntity(undefined));
-    assert.false($iren.isEntity(true));
-    assert.false($iren.isEntity('siren'));
-    assert.false($iren.isEntity(entity));
+test('can check none entity', assert => {
+    assert.false(siren.isEntity(null));
+    assert.false(siren.isEntity(undefined));
+    assert.false(siren.isEntity(true));
+    assert.false(siren.isEntity('siren'));
+    assert.false(siren.isEntity(entity));
 });
 
-test('can unwrap', assert => {
-    const r = $iren.unwrap(entity);
+test('can create entity', assert => {
+    const r = siren.entity(entity);
 
-    assert.true($iren.isEntity(r));
-    assert.deepEqual(r, { 'value': 42, 'name': 'siren' });
+    assert.true(siren.isEntity(r));
+    assert.deepEqual(r.properties, { value: 42, name: 'siren' });
 });
 
-test('cannot unwrap null or undefined', assert => {
-    assert.equal($iren.unwrap(null), null);
-    assert.equal($iren.unwrap(undefined), undefined);
+test('can create entity from null or undefined', assert => {
+    assert.true(siren.isEntity(siren.entity(null)));
+    assert.deepEqual(siren.entity(null).properties, {});
+
+    assert.true(siren.isEntity(siren.entity(undefined)));
 });
 
-test('can unwrap entity without property', assert => {
-    assert.deepEqual($iren.unwrap({}), {});
+test('can create entity without property', assert => {
+    const r = siren.entity({});
+    assert.true(siren.isEntity(r));
 });
 
-test('unwrap already unwrapped entity has no effect', assert => {
-    const r = $iren.unwrap(entity);
+test('do not create an entity from an entity', assert => {
+    const r = siren.entity(entity);
 
-    assert.equal($iren.unwrap(r), r);
-});
-
-test('unwrap entity context returns entity', assert => {
-    const r = $iren.unwrap(entity);
-
-    assert.equal($iren.unwrap($iren(r)), r);
-});
-
-test('can safely get siren context for null', assert => {
-    const sirentWrapper = $iren(null);
-
-    assert.equal(sirentWrapper.title, '');
-});
-
-test('can safely get siren context for undefined', assert => {
-    const sirentWrapper = $iren(undefined);
-
-    assert.equal(sirentWrapper.title, '');
-});
-
-test('can safely get siren context for not unwrapped entity', assert => {
-    const sirentWrapper = $iren({});
-
-    assert.equal(sirentWrapper.title, '');
+    assert.equal(siren.entity(r), r);
 });
 
 ///////////////////////////////////////////////////////////////////////
 
-QUnit.module('For class and title, $iren', {
+QUnit.module('For class and title, siren', {
     beforeEach: function () {
         entity = {
             'class': ['entityclass'],
@@ -85,41 +64,35 @@ QUnit.module('For class and title, $iren', {
 });
 
 test('can know class', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    assert.true($iren(r).hasClass('entityclass'));
-    assert.deepEqual($iren(r).class, ['entityclass']);
-    assert.false($iren(r).hasClass('unknow class'));
+    assert.true(e.hasClass('entityclass'));
+    assert.deepEqual(e.class, ['entityclass']);
+    assert.false(e.hasClass('unknow class'));
 });
 
 test('can process entity with no class', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    assert.false($iren(r).hasClass('entityclass'));
-    assert.deepEqual($iren(r).class, []);
+    assert.false(e.hasClass('entityclass'));
+    assert.deepEqual(e.class, []);
 });
 
 test('can get title', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    assert.equal($iren(r).title, 'my entity');
+    assert.equal(e.title, 'my entity');
 });
 
 test('can process entity with no title', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    assert.equal($iren(r).title, '');
-});
-
-test('can ask for siren context on context itself', assert => {
-    const e = $iren.unwrap(entity);
-
-    assert.equal($iren($iren(e)).title, 'my entity');
+    assert.equal(e.title, '');
 });
 
 ///////////////////////////////////////////////////////////////////////
 
-QUnit.module('For links, $iren', {
+QUnit.module('For links, siren', {
     beforeEach: function () {
         entity = {
             'links': [
@@ -148,30 +121,30 @@ QUnit.module('For links, $iren', {
 });
 
 test('can check link declaration', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    assert.true($iren(r).hasLink('self'));
-    assert.true($iren(r).hasLink(['self']));
-    assert.true($iren(r).hasLink({ rel: ['self'] }));
-    assert.true($iren(r).hasLink({ rel: ['self'], type: 'application/json' }));
-    assert.true($iren(r).hasLink('alternate'));
-    assert.true($iren(r).hasLink(['author', 'collection']));
+    assert.true(e.hasLink('self'));
+    assert.true(e.hasLink(['self']));
+    assert.true(e.hasLink({ rel: ['self'] }));
+    assert.true(e.hasLink({ rel: ['self'], type: 'application/json' }));
+    assert.true(e.hasLink('alternate'));
+    assert.true(e.hasLink(['author', 'collection']));
 
-    assert.false($iren(r).hasLink('collection'));
-    assert.false($iren(r).hasLink({ rel: 'self', type: 'application/pdf' }));
+    assert.false(e.hasLink('collection'));
+    assert.false(e.hasLink({ rel: 'self', type: 'application/pdf' }));
 });
 
 test('can check link for entity without any link', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    assert.false($iren(r).hasLink('self'));
-    assert.false($iren(r).hasLink({ rel: ['self'] }));
+    assert.false(e.hasLink('self'));
+    assert.false(e.hasLink({ rel: ['self'] }));
 });
 
 test('can get link by rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const link = $iren(r).link('self');
+    const link = e.link('self');
 
     assert.deepEqual(link, {
         'rel': ['self'],
@@ -179,13 +152,13 @@ test('can get link by rel', assert => {
         'type': 'application/json'
     });
 
-    assert.true($iren.isLink(link));
+    assert.true(siren.isLink(link));
 });
 
 test('can get first link when multiple links', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const link = $iren(r).link('alternate');
+    const link = e.link('alternate');
 
     assert.deepEqual(link, {
         'rel': ['alternate'],
@@ -195,9 +168,9 @@ test('can get first link when multiple links', assert => {
 });
 
 test('can get link by multiple criteria', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const link = $iren(r).link({ rel: ['self'], type: 'application/json' });
+    const link = e.link({ rel: ['self'], type: 'application/json' });
 
     assert.deepEqual(link, {
         'rel': ['self'],
@@ -207,9 +180,9 @@ test('can get link by multiple criteria', assert => {
 });
 
 test('can get link by criteria without rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const link = $iren(r).link({ type: 'application/pdf' });
+    const link = e.link({ type: 'application/pdf' });
 
     assert.deepEqual(link, {
         'rel': ['alternate'],
@@ -219,17 +192,17 @@ test('can get link by criteria without rel', assert => {
 });
 
 test('can get no link when no link provided in the entity', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    const link = $iren(r).link("self");
+    const link = e.link("self");
 
     assert.deepEqual(link, {});
 });
 
 test('can get all links when multiple links with one rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const links = $iren(r).links('alternate');
+    const links = e.links('alternate');
 
     assert.deepEqual(links, [
         {
@@ -246,9 +219,9 @@ test('can get all links when multiple links with one rel', assert => {
 });
 
 test('can get all links when multiple links with an array of rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const links = $iren(r).links(['alternate']);
+    const links = e.links(['alternate']);
 
     assert.deepEqual(links, [
         {
@@ -265,9 +238,9 @@ test('can get all links when multiple links with an array of rel', assert => {
 });
 
 test('can get links by multiple criteria', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const links = $iren(r).links({ rel: ['self'], type: 'application/json' });
+    const links = e.links({ rel: ['self'], type: 'application/json' });
 
     assert.deepEqual(links, [
         {
@@ -279,24 +252,24 @@ test('can get links by multiple criteria', assert => {
 });
 
 test('can get no links', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const links = $iren(r).links("collection");
+    const links = e.links("collection");
 
     assert.deepEqual(links, []);
 });
 
 test('can get no links when no link provided in the entity', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    const links = $iren(r).links("self");
+    const links = e.links("self");
 
     assert.deepEqual(links, []);
 });
 
 ///////////////////////////////////////////////////////////////////////
 
-QUnit.module('For sub-entities, $iren', {
+QUnit.module('For sub-entities, siren', {
     beforeEach: function () {
         entity = {
             'entities': [
@@ -320,65 +293,66 @@ QUnit.module('For sub-entities, $iren', {
 });
 
 test('can check sub entity by rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    assert.true($iren(r).hasEntity("alternate"));
-    assert.true($iren(r).hasEntity(["alternate"]));
-    assert.true($iren(r).hasEntity("item"));
-    assert.true($iren(r).hasEntity(["search", "collection"]));
-    assert.false($iren(r).hasEntity("collection"));
+    assert.true(e.hasEntity("alternate"));
+    assert.true(e.hasEntity(["alternate"]));
+    assert.true(e.hasEntity("item"));
+    assert.true(e.hasEntity(["search", "collection"]));
+    assert.false(e.hasEntity("collection"));
 });
 
 test('can check sub entity by rel after getting one entity', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    $iren(r).entity("alternate");
+    e.entity("alternate");
 
-    assert.true($iren(r).hasEntity("alternate"));
-    assert.true($iren(r).hasEntity("item"));
-    assert.false($iren(r).hasEntity("collection"));
+    assert.true(e.hasEntity("alternate"));
+    assert.true(e.hasEntity("item"));
+    assert.false(e.hasEntity("collection"));
 });
 
 test('can get sub entity by rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const e = $iren(r).entity("alternate");
+    const subEntity = e.entity("alternate");
 
-    assert.equal($iren(e).title, 'my sub entity');
-    assert.true($iren(e).hasClass('myclass'));
-    assert.true($iren.isEntity(e));
-    assert.true($iren.isSubEntity(e));
-    assert.true($iren.isSubEntityEmbeddedLink(e));
+    assert.equal(subEntity.title, 'my sub entity');
+    assert.true(subEntity.hasClass('myclass'));
+    assert.true(siren.isEntity(subEntity));
+    assert.true(siren.isSubEntity(subEntity));
+    assert.true(siren.isSubEntityEmbeddedLink(subEntity));
 });
 
 test('can get sub entities by one rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const e = $iren(r).entities("alternate");
+    const subEntities = e.entities("alternate");
 
-    assert.deepEqual(e, [{}]);
+    assert.equal(subEntities.length, 1);
+    assert.equal(subEntities[0].title, 'my sub entity');
 });
 
 test('can get sub entities by an array of rel', assert => {
-    const r = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const e = $iren(r).entities(["search", "collection"]);
+    const subEntities = e.entities(["search", "collection"]);
 
-    assert.deepEqual(e, [{}]);
+    assert.equal(subEntities.length, 1);
+    assert.deepEqual(subEntities[0].rel, ["collection", "search"]);
 });
 
 test('cannot get sub entity when it does not exist', assert => {
-    const r = $iren.unwrap({});
+    const e = siren.entity({});
 
-    const e = $iren(r).entity("alternate");
+    const subEntity = e.entity("alternate");
 
-    assert.false($iren.isSubEntityEmbeddedLink(e));
+    assert.false(siren.isSubEntityEmbeddedLink(subEntity));
 });
-
 
 ///////////////////////////////////////////////////////////////////////
 
-QUnit.module('For creating request, $iren', {
+QUnit.module('For creating request, siren', {
     beforeEach: function () {
         entity = {
             'entities': [
@@ -416,9 +390,9 @@ if (typeof global !== 'undefined') {
 }
 
 test('can get request when self link available', assert => {
-    const e = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const r = $iren.request(e);
+    const r = siren.request(e);
 
     assert.equal(r.method, 'GET');
     assert.equal(r.url, 'http://localhost/self');
@@ -426,111 +400,36 @@ test('can get request when self link available', assert => {
 });
 
 test('can get request with rel', assert => {
-    const e = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const r = $iren.request($iren(e).link('alternate'));
+    const r = siren.request(e.link('alternate'));
 
     assert.equal(r.method, 'GET');
     assert.equal(r.url, 'http://localhost/alternate');
 });
 
 test('can get request with specific content-type', assert => {
-    const e = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const r = $iren.request($iren(e).link('alternate'));
+    const r = siren.request(e.link('alternate'));
 
     assert.equal(r.headers.get('Accept'), 'image/png');
 });
 
 test('cannot get request when self link not available', assert => {
-    const e = $iren.unwrap({});
+    const e = siren.entity({});
 
     assert.throws(() => {
-        $iren.request(e);
+        siren.request(e);
     })
 });
 
 test('can get request for sub entity embedded link', assert => {
-    const e = $iren.unwrap(entity);
+    const e = siren.entity(entity);
 
-    const r = $iren.request($iren(e).entity('alternate'));
+    const r = siren.request(e.entity('alternate'));
 
     assert.equal(r.method, 'GET');
     assert.equal(r.url, 'http://localhost/subentity');
     assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
-});
-
-
-///////////////////////////////////////////////////////////////////////
-
-QUnit.module('With factory, $iren', {
-    beforeEach: function () {
-        entity = {
-            class: ['customClass'],
-            properties: {
-                'name': 'myentity',
-            },
-            entities: [
-                {
-                    class: ['customClass'],
-                    rel: ['alternate'],
-                    properties: {
-                        'name': 'mysubentity',
-                    }
-                },
-                {
-                    class: ['collectionClass', 'customClass'],
-                    rel: ['collection'],
-                    properties: {
-                        'name': 'mysubcollection',
-                    }
-                }
-            ]
-        };
-    }
-});
-
-class MyCustomClass {
-
-    constructor(properties) {
-        Object.assign(this, properties);
-    }
-
-}
-
-test('can unwrap with custom class', assert => {
-    const e = $iren.unwrap(entity, p => new MyCustomClass(p));
-
-    assert.true(e instanceof MyCustomClass);
-    assert.equal(e.name, 'myentity');
-});
-
-
-test('can register factory for custom class', assert => {
-    $iren.registerFactory('customClass', p => new MyCustomClass(p));
-
-    const e = $iren.unwrap(entity);
-
-    assert.true(e instanceof MyCustomClass);
-});
-
-test('can register factory for custom class for sub entity', assert => {
-    $iren.registerFactory('customClass', p => new MyCustomClass(p));
-    const e = $iren.unwrap(entity);
-
-    const sube = $iren(e).entity('alternate');
-
-    assert.true(sube instanceof MyCustomClass);
-    assert.equal(sube.name, 'mysubentity');
-});
-
-
-test('can register factory for custom class for sub entity with multiple classes', assert => {
-    $iren.registerFactory('customClass', p => new MyCustomClass(p));
-    const e = $iren.unwrap(entity);
-
-    const sube = $iren(e).entity('collection');
-
-    assert.true(sube instanceof MyCustomClass);
-    assert.equal(sube.name, 'mysubcollection');
 });
