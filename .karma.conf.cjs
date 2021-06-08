@@ -20,6 +20,10 @@ module.exports = function (config) {
         type: 'module'
       },
       {
+        pattern: 'siren.js',
+        type: 'module'
+      },
+      {
         pattern: 'test/**/*.js',
         type: 'module'
       }
@@ -64,7 +68,7 @@ module.exports = function (config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadless', 'FirefoxHeadless'],
 
 
     // Continuous Integration mode
