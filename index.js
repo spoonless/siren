@@ -9,7 +9,7 @@ class SirenError extends Error {
 
 function areEqual(a, b) {
     if (Array.isArray(a)) {
-        return Array.isArray(b) && a.every(e => b.includes(e));
+        return Array.isArray(b) && a.length === b.length && a.every(e => b.includes(e));
     } else {
         return a === b;
     }
@@ -56,11 +56,11 @@ class EntityWrapper {
             param = [param];
         }
         if (Array.isArray(param)) {
-            return links.filter(l => areEqual(l.rel, param));
+            return links.filter(l => areEqual(param, l.rel));
         }
         return links.filter(l => {
             for (const p in param) {
-                if (!areEqual(param[p], l[p])) {
+                if (!areEqual(l[p], param[p])) {
                     return false;
                 }
             }
@@ -78,7 +78,7 @@ class EntityWrapper {
         }
         if (Array.isArray(param)) {
             for (const l of this.links()) {
-                if (areEqual(l.rel, param)) {
+                if (areEqual(param, l.rel, )) {
                     return l;
                 }
             }
