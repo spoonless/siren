@@ -1,5 +1,5 @@
 {
-  "name": "sirencall",
+  "name": "@dgayerie/siren",
   "version": "0.3.0",
   "description": "A lightweight library to easily integrate JSON Hypermedia with Siren format. https://github.com/kevinswiber/siren",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spoonless/sirencall.git"
+    "url": "git+https://github.com/spoonless/siren.git"
   },
   "keywords": [
     "JSON",
@@ -25,9 +25,9 @@
   "author": "David Gayerie",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/spoonless/sirencall/issues"
+    "url": "https://github.com/spoonless/siren/issues"
   },
-  "homepage": "https://github.com/spoonless/sirencall#readme",
+  "homepage": "https://github.com/spoonless/siren#readme",
   "devDependencies": {
     "karma": "^6.3.2",
     "karma-chrome-launcher": "^3.1.0",
