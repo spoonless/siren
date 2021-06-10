@@ -147,66 +147,119 @@ class EntityWrapper {
 const emptyEntity = Object.freeze(new EntityWrapper({}));
 const emptyLink = Object.freeze({});
 
-const siren = {
-    entity: function (o, postConstructFn) {
-        if (!o) {
-            return emptyEntity;
+/**
+ * The siren namespace
+ */
+const siren = {}
+
+/**
+ * Returns a siren entity repesenting the object.
+ * 
+ * The returned object has methods to explore the entity.
+ * If the object in parameter is already a siren entity,
+ * this function has no effect and returns the object itself.
+ * If the reference in parameter is null or undefined, this
+ * function returns an empty entity (no properties, no link, no embedded entity)
+ * @param {Object} o The object for which to create a siren entity
+ * @param {Function} postConstructFn A post construct function 
+ * called after the entity creation (and each embedded entity creation) 
+ * @returns {EntityWrapper} the siren entity 
+ */
+siren.entity = function (o, postConstructFn) {
+    if (!o) {
+        return emptyEntity;
+    }
+    if (siren.isEntity(o)) {
+        return o;
+    }
+    return new EntityWrapper(o, postConstructFn);
+};
+
+/**
+ * @param {Object} o The object to check
+ * @returns {boolean} true if the object is siren entity
+ */
+siren.isEntity = function (o) {
+    return o instanceof EntityWrapper;
+};
+
+/**
+ * @param {Object} l The link to check
+ * @returns {boolean} true if the object is a link (has href and rel attributes).
+ * An embedded link entity is a link.
+ */
+
+siren.isLink = function (l) {
+    return !!(l && l.href && l.rel);
+};
+
+/**
+ * @param {Object} o The object to check
+ * @returns {boolean} true if the object is siren sub entity (has a rel attribute).
+ */
+siren.isSubEntity = function (o) {
+    return !!(siren.isEntity(o) && o.rel);
+};
+
+/**
+ * @param {Object} o The object to check
+ * @returns {boolean} true if the object is siren sub entity embedded link (has rel and href attributes).
+ */
+ siren.isSubEntityEmbeddedLink = function (o) {
+    return !!(siren.isEntity(o) && siren.isLink(o));
+};
+
+/**
+ * @param {Object} o A link, a siren entity or a siren sub entity embedded link 
+ * @returns {Request} A request object that can be passed to the fetch function.
+ */
+siren.request = function (o) {
+    let link;
+    if (siren.isLink(o)) {
+        link = o;
+    } else if (siren.isEntity(o)) {
+        link = o.link('self');
+    }
+    if (!siren.isLink(link)) {
+        throw new SirenError('No link information found to create request for this entity');
+    }
+    const headers = new Headers();
+    if (link.type) {
+        headers.set('Accept', link.type);
+    } else {
+        headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+    }
+    return new Request(link.href, { method: 'GET', headers: headers });
+};
+
+/**
+ * Allows to visit each link (and sub entity embedded link).
+ * 
+ * You have the opportunity to update the links (for instance, update href to create an absolute URL).
+ * 
+ * @param {Object} e A link, a siren entity or a siren sub entity
+ * @param {Function} visitorFn The visitor function which will receive the link or entity as parameter
+ * @param {boolean} includeSubEntities true if the visit should be recursive and includes the sub entities.
+ */
+siren.visitLinks = function (e, visitorFn, includeSubEntities = false) {
+    if (siren.isEntity(e)) {
+        if (typeof e[entitySymbol].href === 'string') {
+            visitorFn(e[entitySymbol]);
         }
-        if (siren.isEntity(o)) {
-            return o;
-        }
-        return new EntityWrapper(o, postConstructFn);
-    },
-    isEntity: function (o) {
-        return o instanceof EntityWrapper;
-    },
-    isLink: function (l) {
-        return !!(l && l.href && l.rel);
-    },
-    isSubEntity: function (o) {
-        return !!(siren.isEntity(o) && o.rel);
-    },
-    isSubEntityEmbeddedLink: function (o) {
-        return !!(siren.isEntity(o) && siren.isLink(o));
-    },
-    request: function (o) {
-        let link;
-        if (siren.isLink(o)) {
-            link = o;
-        } else if (siren.isEntity(o)) {
-            link = o.link('self');
-        }
-        if (!siren.isLink(link)) {
-            throw new SirenError('No link information found to create request for this entity');
-        }
-        const headers = new Headers();
-        if (link.type) {
-            headers.set('Accept', link.type);
-        } else {
-            headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
-        }
-        return new Request(link.href, { method: 'GET', headers: headers });
-    },
-    visitLinks: function (e, visitorFn, includeSubEntities = false) {
-        if (siren.isEntity(e)) {
-            if (typeof e[entitySymbol].href === 'string') {
-                visitorFn(e[entitySymbol]);
+        for (const l of e.links()) {
+            if (siren.isLink(l)) {
+                visitorFn(l);
             }
-            for (const l of e.links()) {
-                if (siren.isLink(l)) {
-                    visitorFn(l);
-                }
-            }
-            if (includeSubEntities) {
-                for (const sube of e.entities()) {
-                    siren.visitLinks(sube, visitorFn);
-                }
-            }
         }
-        else if (siren.isLink(e)) {
-            visitorFn(e);
+        if (includeSubEntities) {
+            for (const sube of e.entities()) {
+                siren.visitLinks(sube, visitorFn);
+            }
         }
     }
-}
+    else if (siren.isLink(e)) {
+        visitorFn(e);
+    }
+};
 
 export default siren;
