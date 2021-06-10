@@ -36,7 +36,8 @@ module.exports = function (config) {
       // source files, that you wanna generate coverage for
       // do not include tests or libraries
       // (these files will be instrumented by Istanbul)
-      'index.js': ['coverage']
+      'index.js': ['coverage'],
+      'siren.js': ['coverage'],
     },
 
     // optionally, configure the reporter
