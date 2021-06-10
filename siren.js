@@ -1,6 +1,6 @@
 const entitySymbol = Symbol();
 const subEntitiesSymbol = Symbol();
-const basePathSymbol = Symbol();
+const postConstructSymbol = Symbol();
 
 class SirenError extends Error {
     constructor(msg) {
@@ -17,22 +17,11 @@ function areEqual(a, b) {
 }
 
 class EntityWrapper {
-    constructor(e, basePath) {
+    constructor(e, postConstructFn) {
         this[entitySymbol] = e;
-        this[basePathSymbol] = basePath;
-        this._toAbsolutePaths();
-    }
-
-    _toAbsolutePaths() {
-        if (this[basePathSymbol]) {
-            if (typeof this[entitySymbol].href === 'string') {
-                this[entitySymbol].href = new URL(this[entitySymbol].href, this[basePathSymbol]).href;
-            }
-            for (const l of this.links()) {
-                if (typeof l.href === 'string') {
-                    l.href = new URL(l.href, this[basePathSymbol]).href;
-                }
-            }
+        if (typeof postConstructFn === 'function') {
+            this[postConstructSymbol] = postConstructFn;
+            postConstructFn(this);
         }
     }
 
@@ -125,14 +114,13 @@ class EntityWrapper {
                     return true;
                 }
             }
-            return false;
         }
-        return emptyEntity;
+        return false;
     }
 
     entities(rel) {
         if (!this[subEntitiesSymbol] && this[entitySymbol].entities) {
-            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[basePathSymbol]));
+            this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[postConstructSymbol]));
         }
         if (!rel) {
             return this[subEntitiesSymbol] || [];
@@ -160,17 +148,17 @@ const emptyEntity = Object.freeze(new EntityWrapper({}));
 const emptyLink = Object.freeze({});
 
 const siren = {
-    isEntity: function (o) {
-        return o instanceof EntityWrapper;
-    },
-    entity: function (o, basePath) {
+    entity: function (o, postConstructFn) {
         if (!o) {
             return emptyEntity;
         }
         if (siren.isEntity(o)) {
             return o;
         }
-        return new EntityWrapper(o, basePath);
+        return new EntityWrapper(o, postConstructFn);
+    },
+    isEntity: function (o) {
+        return o instanceof EntityWrapper;
     },
     isLink: function (l) {
         return !!(l && l.href && l.rel);
@@ -198,6 +186,26 @@ const siren = {
             headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
         }
         return new Request(link.href, { method: 'GET', headers: headers });
+    },
+    visitLinks: function (e, visitorFn, includeSubEntities = false) {
+        if (siren.isEntity(e)) {
+            if (typeof e[entitySymbol].href === 'string') {
+                visitorFn(e[entitySymbol]);
+            }
+            for (const l of e.links()) {
+                if (siren.isLink(l)) {
+                    visitorFn(l);
+                }
+            }
+            if (includeSubEntities) {
+                for (const sube of e.entities()) {
+                    siren.visitLinks(sube, visitorFn);
+                }
+            }
+        }
+        else if (siren.isLink(e)) {
+            visitorFn(e);
+        }
     }
 }
 

@@ -292,6 +292,12 @@ QUnit.module('For sub-entities, siren', {
     }
 });
 
+test('can check sub entity by rel does not exist', assert => {
+    const e = siren.entity({});
+
+    assert.false(e.hasEntity("alternate"));
+});
+
 test('can check sub entity by rel', assert => {
     const e = siren.entity(entity);
 
@@ -461,26 +467,51 @@ QUnit.module('For resolving URL, siren', {
     }
 });
 
-test('can create absolute URL for link', assert => {
-    const e = siren.entity(entity, 'http://localhost');
+function postConstruct(e) {
+    siren.visitLinks(e, link => {
+        link.href = new URL(link.href, 'http://localhost');
+    });
+}
+
+test('can create absolute URL for link with post construct function', assert => {
+    const e = siren.entity(entity, postConstruct);
 
     const l = e.link('self');
-
     assert.equal(l.href, 'http://localhost/self');
 });
 
-test('can create absolute URL for sub-entity', assert => {
-    const e = siren.entity(entity, 'http://localhost');
+test('can create absolute URL for sub-entity with post construct function', assert => {
+    const e = siren.entity(entity, postConstruct);
 
     const subEntity = e.entity('item');
-
     assert.equal(subEntity.href, 'http://localhost/subentity');
 });
 
-test('can create absolute URL for sub-entity link', assert => {
-    const e = siren.entity(entity, 'http://localhost');
+test('can create absolute URL for sub-entity link with post construct function', assert => {
+    const e = siren.entity(entity, postConstruct);
 
     const l = e.entity('item').link('self');
-
     assert.equal(l.href, 'http://localhost/subentity/self');
+});
+
+test('can create absolute URL by visiting link', assert => {
+    const e = siren.entity(entity);
+
+    siren.visitLinks(e.entity('item').link('self'), link => {
+        link.href = new URL(link.href, 'http://localhost');
+    });
+
+    const l = e.entity('item').link('self');
+    assert.equal(l.href, 'http://localhost/subentity/self');
+});
+
+test('can create absolute URL for sub-entity by recursively visiting links', assert => {
+    const e = siren.entity(entity);
+
+    siren.visitLinks(e, link => {
+        link.href = new URL(link.href, 'http://localhost');
+    }, true);
+
+    const subEntity = e.entity('item');
+    assert.equal(subEntity.href, 'http://localhost/subentity');
 });
