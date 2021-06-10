@@ -1,6 +1,6 @@
 {
   "name": "@dgayerie/siren",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A lightweight library to easily integrate JSON Hypermedia with Siren format. https://github.com/kevinswiber/siren",
   "main": "index.js",
   "type": "module",
