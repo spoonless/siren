@@ -127,13 +127,12 @@ class EntityWrapper {
             }
             return false;
         }
-        return this.entity(rel) !== emptyEntity;
+        return emptyEntity;
     }
 
     entities(rel) {
-        if (this[entitySymbol].entities) {
+        if (!this[subEntitiesSymbol] && this[entitySymbol].entities) {
             this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[basePathSymbol]));
-            delete this[entitySymbol].entities;
         }
         if (!rel) {
             return this[subEntitiesSymbol] || [];
