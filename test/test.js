@@ -372,11 +372,20 @@ QUnit.module('For creating request, siren', {
         entity = {
             'entities': [
                 {
+                    'rel': ['item'],
+                    'links': [
+                        {
+                            'rel': ['self'],
+                            'href': 'http://localhost/itementity'
+                        }
+                    ]
+                },
+                {
                     'rel': ['alternate'],
                     'href': 'http://localhost/subentity'
                 }
             ],
-            links: [
+            'links': [
                 {
                     'rel': ['self'],
                     'href': 'http://localhost/self'
@@ -439,6 +448,16 @@ test('cannot get request when self link not available', assert => {
     })
 });
 
+test('can get request for entity with self link', assert => {
+    const e = siren.entity(entity);
+
+    const r = siren.request(e.entity('item'));
+
+    assert.equal(r.method, 'GET');
+    assert.equal(r.url, 'http://localhost/itementity');
+    assert.equal(r.headers.get('Accept'), 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+});
+
 test('can get request for sub entity embedded link', assert => {
     const e = siren.entity(entity);
 
@@ -451,7 +470,7 @@ test('can get request for sub entity embedded link', assert => {
 
 ///////////////////////////////////////////////////////////////////////
 
-QUnit.module('For resolving URL, siren', {
+QUnit.module('For post construct, siren', {
     beforeEach: function () {
         entity = {
             'entities': [
