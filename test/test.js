@@ -48,6 +48,15 @@ test('do not create an entity from an entity', assert => {
     assert.equal(siren.entity(r), r);
 });
 
+test('can get property', assert => {
+    const e = siren.entity(entity);
+
+    assert.equal(e.property('value'), 42);
+    assert.equal(e.property('value', 50), 42);
+    assert.equal(e.property('unknown', "no value"), "no value");
+    assert.equal(e.property('unknown', undefined));
+});
+
 ///////////////////////////////////////////////////////////////////////
 
 QUnit.module('For class and title, siren', {

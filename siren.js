@@ -52,6 +52,14 @@ class EntityWrapper {
         return this[entitySymbol].rel;
     }
 
+    property(name, defaultValue) {
+        const value = this.properties[name];
+        if(value === null || value === undefined) {
+            return defaultValue;
+        }
+        return value;
+    }
+
     links(param) {
         const links = this[entitySymbol].links || [];
         if (!param) {
