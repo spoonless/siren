@@ -153,6 +153,11 @@ const emptyLink = Object.freeze({});
 const siren = {}
 
 /**
+ * Mime-type for Siren document
+ */
+siren.mimeType = 'application/vnd.siren+json';
+
+/**
  * Returns a siren entity repesenting the object.
  * 
  * The returned object has methods to explore the entity.
@@ -227,7 +232,7 @@ siren.request = function (o) {
     if (link.type) {
         headers.set('Accept', link.type);
     } else {
-        headers.set('Accept', 'application/vnd.siren+json,application/json;q=0.9,*/*;q=0.8');
+        headers.set('Accept', `${siren.mimeType},application/json;q=0.9,*/*;q=0.8`);
     }
     return new Request(link.href, { method: 'GET', headers: headers });
 };
