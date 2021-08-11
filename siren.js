@@ -150,6 +150,10 @@ class EntityWrapper {
         }
         return emptyEntity;
     }
+
+    toJSON() {
+        return this[entitySymbol];
+    }
 }
 
 const emptyEntity = Object.freeze(new EntityWrapper({}));

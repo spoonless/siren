@@ -543,3 +543,38 @@ test('can create absolute URL for sub-entity by recursively visiting links', ass
     const subEntity = e.entity('item');
     assert.equal(subEntity.href, 'http://localhost/subentity');
 });
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For JSON, siren', {
+    beforeEach: function () {
+        entity = {
+            'entities': [
+                {
+                    'rel': ['item'],
+                    'href': './subentity',
+                    'links': [
+                        {
+                            'rel': ['self'],
+                            'href': './subentity/self'
+                        }
+                    ]
+                }
+            ],
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': './self'
+                }
+            ]
+        };
+    }
+});
+
+test('can convert to JSON', assert => {
+    const e = siren.entity(entity);
+
+    const json = JSON.stringify(e);
+
+    assert.deepEqual(JSON.parse(json), entity);
+});
