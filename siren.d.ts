@@ -1,5 +1,6 @@
 export default siren;
 declare namespace siren {
+    const mimeType: string;
     /**
      * Returns a siren entity repesenting the object.
      *
@@ -50,6 +51,17 @@ declare namespace siren {
      * @param {boolean} includeSubEntities true if the visit should be recursive and includes the sub entities.
      */
     function visitLinks(e: any, visitorFn: Function, includeSubEntities?: boolean): void;
+    /**
+     * Compares reference URI to check if two entities are equal.
+     *
+     * For entities, the self link is used to extract the reference URI.
+     * For sub embedded entities, the href attribute is used to extract reference URI.
+     *
+     * @param {Object} e1 A siren entity or a siren sub entity
+     * @param {Object} e2 A siren entity or a siren sub entity
+     * @returns {boolean} true if these entities have the same URI
+     */
+    function equal(e1: any, e2: any): boolean;
 }
 declare class EntityWrapper {
     constructor(e: any, postConstructFn: any);
@@ -59,12 +71,14 @@ declare class EntityWrapper {
     get properties(): any;
     get href(): any;
     get rel(): any;
+    property(name: any, defaultValue: any): any;
     links(param: any): any;
     hasLink(param: any): boolean;
     link(param: any): any;
     hasEntity(rel: any): boolean;
     entities(rel: any): any;
     entity(rel: any): any;
+    toJSON(): any;
     [entitySymbol]: any;
     [postConstructSymbol]: any;
     [subEntitiesSymbol]: any;

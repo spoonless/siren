@@ -3,6 +3,7 @@ import siren from '../index.js';
 const test = QUnit.test;
 
 let entity;
+let otherEntity;
 
 QUnit.module('siren', {
     beforeEach: function () {
@@ -577,4 +578,93 @@ test('can convert to JSON', assert => {
     const json = JSON.stringify(e);
 
     assert.deepEqual(JSON.parse(json), entity);
+});
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For different entities, siren', {});
+
+test('can check equality', assert => {
+    const e = siren.entity({
+        'links': [
+            {
+                'rel': ['self'],
+                'href': './self'
+            }
+        ]
+    });
+
+    assert.false(siren.equal(null, null));
+    assert.false(siren.equal(null, e));
+    assert.false(siren.equal(e, null));
+    assert.false(siren.equal(e, siren.entity({})));
+});
+
+test('can check equality for entities with same self link', assert => {
+    const result = siren.equal(
+        siren.entity({
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': './self'
+                }
+            ]
+        }),
+        siren.entity({
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': './self'
+                }
+            ]
+        })
+    );
+
+    assert.true(result);
+});
+
+test('can check equality for entities with no self link', assert => {
+    const result = siren.equal(
+        siren.entity({
+        }),
+        siren.entity({
+        })
+    );
+
+    assert.false(result);
+});
+
+test('can check equality for sub entities with same href link', assert => {
+    const result = siren.equal(
+        siren.entity({
+            'rel': 'item',
+            'href': './self'
+        }),
+        siren.entity({
+            'rel': 'item',
+            'href': './self'
+        })
+    );
+
+    assert.true(result);
+});
+
+
+test('can check equality for entity and sub entity', assert => {
+    const result = siren.equal(
+        siren.entity({
+            'rel': 'item',
+            'href': './self'
+        }),
+        siren.entity({
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': './self'
+                }
+            ]
+        })
+    );
+
+    assert.true(result);
 });
