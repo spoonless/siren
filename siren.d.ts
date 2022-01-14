@@ -72,9 +72,13 @@ declare class EntityWrapper {
     get href(): any;
     get rel(): any;
     property(name: any, defaultValue: any): any;
+    setProperty(name: any, value: any): void;
     links(param: any): any;
     hasLink(param: any): boolean;
     link(param: any): any;
+    setLink(link: any): void;
+    setLinkHref(rel: any, href: any): void;
+    addLink(link: any): void;
     hasEntity(rel: any): boolean;
     entities(rel: any): any;
     entity(rel: any): any;
