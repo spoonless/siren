@@ -668,3 +668,57 @@ test('can check equality for entity and sub entity', assert => {
 
     assert.true(result);
 });
+
+
+///////////////////////////////////////////////////////////////////////
+
+QUnit.module('For modification, siren', {});
+
+test('can set a property that already exists', assert => {
+    const e = siren.entity({
+        'properties': {
+            'prop1': "before"
+        }
+    });
+
+    e.setProperty('prop1', "after");
+
+    assert.equal("after", e.property('prop1'));
+});
+
+
+test('can set a property that does not already exist', assert => {
+    const e = siren.entity({
+        'properties': {
+            'prop1': "dummy"
+        }
+    });
+
+    e.setProperty('prop2', "value");
+
+    assert.equal("value", e.property('prop2'));
+});
+
+
+test('can set values from properties', assert => {
+    const e = siren.entity({
+        'properties': {
+            'prop1': "before"
+        }
+    });
+
+    e.properties.prop1 = "after"
+    e.properties.prop2 = "new"
+
+    assert.equal("after", e.properties.prop1);
+    assert.equal("new", e.properties.prop2);
+});
+
+
+test('can set values from properties even when entity has no properties', assert => {
+    const e = siren.entity({});
+
+    e.properties.prop = "new"
+
+    assert.equal("new", e.properties.prop);
+});

@@ -41,7 +41,10 @@ class EntityWrapper {
     }
 
     get properties() {
-        return this[entitySymbol].properties || {};
+        if (this[entitySymbol].properties === null || this[entitySymbol].properties === undefined) {
+            this[entitySymbol].properties = {};
+        }
+        return this[entitySymbol].properties;
     }
 
     get href() {
@@ -58,6 +61,10 @@ class EntityWrapper {
             return defaultValue;
         }
         return value;
+    }
+
+    setProperty(name, value) {
+        this[entitySymbol].properties[name] = value;
     }
 
     links(param) {
