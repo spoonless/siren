@@ -683,7 +683,7 @@ test('can set a property that already exists', assert => {
 
     e.setProperty('prop1', "after");
 
-    assert.equal("after", e.property('prop1'));
+    assert.equal(e.property('prop1'), "after");
 });
 
 
@@ -696,7 +696,7 @@ test('can set a property that does not already exist', assert => {
 
     e.setProperty('prop2', "value");
 
-    assert.equal("value", e.property('prop2'));
+    assert.equal(e.property('prop2'), "value");
 });
 
 
@@ -707,18 +707,109 @@ test('can set values from properties', assert => {
         }
     });
 
-    e.properties.prop1 = "after"
-    e.properties.prop2 = "new"
+    e.properties.prop1 = "after";
+    e.properties.prop2 = "new";
 
-    assert.equal("after", e.properties.prop1);
-    assert.equal("new", e.properties.prop2);
+    assert.equal(e.properties.prop1, "after");
+    assert.equal(e.properties.prop2, "new");
 });
 
 
 test('can set values from properties even when entity has no properties', assert => {
     const e = siren.entity({});
 
-    e.properties.prop = "new"
+    e.properties.prop = "new";
 
-    assert.equal("new", e.properties.prop);
+    assert.equal(e.properties.prop, "new");
+});
+
+
+test('can set link', assert => {
+    const e = siren.entity({});
+
+    e.setLink({
+        "rel": ["alternate"],
+        "href": "http://alternate.com"
+    })
+
+    assert.equal(e.link("alternate").href, "http://alternate.com");
+});
+
+
+test('can set link when a link with the same rel already exists', assert => {
+    const e = siren.entity({
+        "links": [
+            {
+                "rel": ["alternate"],
+                "href": "http://dummy.com"
+            }
+        ]
+    });
+
+    e.setLink({
+        "rel": ["alternate"],
+        "href": "http://alternate.com"
+    })
+
+    assert.equal(e.link("alternate").href, "http://alternate.com");
+});
+
+
+test('can add link', assert => {
+    const e = siren.entity({});
+
+    e.addLink({
+        "rel": ["alternate"],
+        "href": "http://alternate.com"
+    })
+
+    assert.equal(e.link("alternate").href, "http://alternate.com");
+});
+
+
+test('can add link when a link with the same rel already exists', assert => {
+    const e = siren.entity({
+        "links": [
+            {
+                "rel": ["alternate"],
+                "href": "http://firstalternate.com"
+            }
+        ]
+    });
+
+    e.addLink({
+        "rel": ["alternate"],
+        "href": "http://secondalternate.com"
+    })
+
+    const links = e.links('alternate');
+    assert.equal(links[0].href, "http://firstalternate.com");
+    assert.equal(links[1].href, "http://secondalternate.com");
+});
+
+
+test('can set link href', assert => {
+    const e = siren.entity({});
+
+    e.setLinkHref("alternate", "http://alternate.com");
+    e.setLinkHref(["collection", "parent"], "http://parent.com");
+
+    assert.equal(e.link("alternate").href, "http://alternate.com");
+    assert.equal(e.link(["collection", "parent"]).href, "http://parent.com");
+});
+
+
+test('can set link href when a link with the same rel already exists', assert => {
+    const e = siren.entity({
+        "links": [
+            {
+                "rel": ["alternate"],
+                "href": "http://dummy.com"
+            }
+        ]
+    });
+
+    e.setLinkHref("alternate", "http://alternate.com");
+
+    assert.equal(e.link("alternate").href, "http://alternate.com");
 });

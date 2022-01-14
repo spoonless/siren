@@ -57,7 +57,7 @@ class EntityWrapper {
 
     property(name, defaultValue) {
         const value = this.properties[name];
-        if(value === null || value === undefined) {
+        if (value === null || value === undefined) {
             return defaultValue;
         }
         return value;
@@ -117,6 +117,46 @@ class EntityWrapper {
             }
         }
         return emptyLink;
+    }
+
+    setLink(link) {
+        if (this[entitySymbol].links === null || this[entitySymbol].links === undefined) {
+            this[entitySymbol].links = [];
+        }
+        const links = this[entitySymbol].links;
+        for (let i = 0; i < links.length; ++i) {
+            if (areEqual(links[i].rel, link.rel)) {
+                links[i] = link;
+                return;
+            }
+        }
+        this[entitySymbol].links.push(link)
+    }
+
+    setLinkHref(rel, href) {
+        if (this[entitySymbol].links === null || this[entitySymbol].links === undefined) {
+            this[entitySymbol].links = [];
+        }
+        if (!Array.isArray(rel)) {
+            rel = [rel];
+        }
+        for (const link of this[entitySymbol].links) {
+            if (areEqual(link.rel, rel)) {
+                link.href = href;
+                return;
+            }
+        }
+        this[entitySymbol].links.push({
+            "rel": rel,
+            "href": href
+        })
+    }
+
+    addLink(link) {
+        if (this[entitySymbol].links === null || this[entitySymbol].links === undefined) {
+            this[entitySymbol].links = [];
+        }
+        this[entitySymbol].links.push(link)
     }
 
     hasEntity(rel) {
@@ -296,7 +336,7 @@ siren.visitLinks = function (e, visitorFn, includeSubEntities = false) {
  * @param {Object} e2 A siren entity or a siren sub entity
  * @returns {boolean} true if these entities have the same URI
  */
- siren.equal = function (e1, e2) {
+siren.equal = function (e1, e2) {
     if (siren.isEntity(e1) && siren.isEntity(e2)) {
         if (e1.hasLink('self')) {
             e1 = e1.link('self');
