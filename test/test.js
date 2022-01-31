@@ -368,6 +368,57 @@ test('cannot get sub entity when it does not exist', assert => {
 
 ///////////////////////////////////////////////////////////////////////
 
+QUnit.module('For href, siren', {
+    beforeEach: function () {
+        entity = {
+            'entities': [
+                {
+                    'rel': ['alternate'],
+                    'href': 'http://localhost/alternate'
+                },
+                {
+                    'rel': ['type'],
+                    'links': [
+                        {
+                            'rel': ['self'],
+                            'href': 'http://localhost/type'
+                        }
+                    ]
+                }
+            ],
+            'links': [
+                {
+                    'rel': ['self'],
+                    'href': 'http://localhost/entity'
+                }
+            ]
+        };
+    }
+});
+
+test('can get href of non sub entity as self link', assert => {
+
+    const href = siren.entity(entity).href;
+
+    assert.equal(href, 'http://localhost/entity');
+});
+
+test('can get href of linked sub entity', assert => {
+
+    const href = siren.entity(entity).entity('alternate').href;
+
+    assert.equal(href, 'http://localhost/alternate');
+});
+
+test('can get href of embedded sub entity as self link', assert => {
+
+    const href = siren.entity(entity).entity('type').href;
+
+    assert.equal(href, 'http://localhost/type');
+});
+
+///////////////////////////////////////////////////////////////////////
+
 QUnit.module('For creating request, siren', {
     beforeEach: function () {
         entity = {

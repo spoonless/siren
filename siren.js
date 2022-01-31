@@ -47,7 +47,14 @@ class EntityWrapper {
         return this[entitySymbol].properties;
     }
 
+    /**
+     * For entity and embedded sub entity, returns the href from self link (if existing).
+     * For sub entity, returns the href attribute.
+     */
     get href() {
+        if (!this[entitySymbol].href) {
+            return this.link('self').href
+        }
         return this[entitySymbol].href;
     }
 
