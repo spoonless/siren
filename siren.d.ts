@@ -12,9 +12,9 @@ declare namespace siren {
      * @param {Object} o The object for which to create a siren entity
      * @param {Function} postConstructFn A post construct function
      * called after the entity creation (and each embedded entity creation)
-     * @returns {EntityWrapper} the siren entity
+     * @returns {SirenEntity} the siren entity
      */
-    function entity(o: any, postConstructFn: Function): EntityWrapper;
+    function entity(o: any, postConstructFn: Function): SirenEntity;
     /**
      * @param {Object} o The object to check
      * @returns {boolean} true if the object is siren entity
@@ -52,23 +52,27 @@ declare namespace siren {
      */
     function visitLinks(e: any, visitorFn: Function, includeSubEntities?: boolean): void;
     /**
-     * Compares reference URI to check if two entities are equal.
+     * Compares href URI to check if two entities/links are equal.
      *
-     * For entities, the self link is used to extract the reference URI.
-     * For sub embedded entities, the href attribute is used to extract reference URI.
+     * For entities, self link is used to extract the reference URI.
+     * For sub embedded entities and links, the href attribute is used to extract reference URI.
      *
-     * @param {Object} e1 A siren entity or a siren sub entity
-     * @param {Object} e2 A siren entity or a siren sub entity
-     * @returns {boolean} true if these entities have the same URI
+     * @param {Object} e1 An entity or link
+     * @param {Object} e2 An entity or link
+     * @returns {boolean} true if these entities/links have the same URI
      */
-    function equal(e1: any, e2: any): boolean;
+    function same(e1: any, e2: any): boolean;
 }
-declare class EntityWrapper {
+declare class SirenEntity {
     constructor(e: any, postConstructFn: any);
     hasClass(c: any): any;
     get class(): any;
     get title(): any;
     get properties(): any;
+    /**
+     * For entity and embedded sub entity, returns the href from self link (if existing).
+     * For sub entity, returns the href attribute.
+     */
     get href(): any;
     get rel(): any;
     property(name: any, defaultValue: any): any;
