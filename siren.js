@@ -16,7 +16,7 @@ function areEqual(a, b) {
     }
 }
 
-class EntityWrapper {
+class SirenEntity {
     constructor(e, postConstructFn) {
         this[entitySymbol] = e;
         if (typeof postConstructFn === 'function') {
@@ -210,7 +210,7 @@ class EntityWrapper {
     }
 }
 
-const emptyEntity = Object.freeze(new EntityWrapper({}));
+const emptyEntity = Object.freeze(new SirenEntity({}));
 const emptyLink = Object.freeze({});
 
 /**
@@ -234,7 +234,7 @@ siren.mimeType = 'application/vnd.siren+json';
  * @param {Object} o The object for which to create a siren entity
  * @param {Function} postConstructFn A post construct function
  * called after the entity creation (and each embedded entity creation)
- * @returns {EntityWrapper} the siren entity
+ * @returns {SirenEntity} the siren entity
  */
 siren.entity = function (o, postConstructFn) {
     if (!o) {
@@ -243,7 +243,7 @@ siren.entity = function (o, postConstructFn) {
     if (siren.isEntity(o)) {
         return o;
     }
-    return new EntityWrapper(o, postConstructFn);
+    return new SirenEntity(o, postConstructFn);
 };
 
 /**
@@ -251,7 +251,7 @@ siren.entity = function (o, postConstructFn) {
  * @returns {boolean} true if the object is siren entity
  */
 siren.isEntity = function (o) {
-    return o instanceof EntityWrapper;
+    return o instanceof SirenEntity;
 };
 
 /**
