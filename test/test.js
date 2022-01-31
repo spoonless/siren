@@ -635,7 +635,7 @@ test('can convert to JSON', assert => {
 
 QUnit.module('For different entities, siren', {});
 
-test('can check equality', assert => {
+test('can check similarity', assert => {
     const e = siren.entity({
         'links': [
             {
@@ -645,14 +645,14 @@ test('can check equality', assert => {
         ]
     });
 
-    assert.false(siren.equal(null, null));
-    assert.false(siren.equal(null, e));
-    assert.false(siren.equal(e, null));
-    assert.false(siren.equal(e, siren.entity({})));
+    assert.false(siren.same(null, null));
+    assert.false(siren.same(null, e));
+    assert.false(siren.same(e, null));
+    assert.false(siren.same(e, siren.entity({})));
 });
 
-test('can check equality for entities with same self link', assert => {
-    const result = siren.equal(
+test('can check similarity for entities with same self link', assert => {
+    const result = siren.same(
         siren.entity({
             'links': [
                 {
@@ -674,8 +674,8 @@ test('can check equality for entities with same self link', assert => {
     assert.true(result);
 });
 
-test('can check equality for entities with no self link', assert => {
-    const result = siren.equal(
+test('can check similarity for entities with no self link', assert => {
+    const result = siren.same(
         siren.entity({
         }),
         siren.entity({
@@ -685,8 +685,8 @@ test('can check equality for entities with no self link', assert => {
     assert.false(result);
 });
 
-test('can check equality for sub entities with same href link', assert => {
-    const result = siren.equal(
+test('can check similarity for sub entities with same href link', assert => {
+    const result = siren.same(
         siren.entity({
             'rel': 'item',
             'href': './self'
@@ -701,8 +701,8 @@ test('can check equality for sub entities with same href link', assert => {
 });
 
 
-test('can check equality for entity and sub entity', assert => {
-    const result = siren.equal(
+test('can check similarity for entity and sub entity', assert => {
+    const result = siren.same(
         siren.entity({
             'rel': 'item',
             'href': './self'

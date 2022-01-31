@@ -334,26 +334,22 @@ siren.visitLinks = function (e, visitorFn, includeSubEntities = false) {
 };
 
 /**
- * Compares reference URI to check if two entities are equal.
+ * Compares href URI to check if two entities/links are equal.
  *
- * For entities, the self link is used to extract the reference URI.
- * For sub embedded entities, the href attribute is used to extract reference URI.
+ * For entities, self link is used to extract the reference URI.
+ * For sub embedded entities and links, the href attribute is used to extract reference URI.
  *
- * @param {Object} e1 A siren entity or a siren sub entity
- * @param {Object} e2 A siren entity or a siren sub entity
- * @returns {boolean} true if these entities have the same URI
+ * @param {Object} e1 An entity or link
+ * @param {Object} e2 An entity or link
+ * @returns {boolean} true if these entities/links have the same URI
  */
-siren.equal = function (e1, e2) {
-    if (siren.isEntity(e1) && siren.isEntity(e2)) {
-        if (e1.hasLink('self')) {
-            e1 = e1.link('self');
-        }
-        if (e2.hasLink('self')) {
-            e2 = e2.link('self');
-        }
-        return siren.isLink(e1) && e1.href === e2.href;
+siren.same = function (e1, e2) {
+    if (!e1 || !e2) {
+        return false;
     }
-    return false;
+    const href1 = e1.href;
+    const href2 = e2.href;
+    return !!href1 && href1 === href2;
 }
 
 export default siren;
