@@ -290,6 +290,7 @@ QUnit.module('For sub-entities, siren', {
                     'href': 'http://localhost'
                 },
                 {
+                    'class': ['myclass', 'mysecondclass'],
                     'rel': ['item'],
                     'href': 'http://localhost'
                 },
@@ -364,6 +365,24 @@ test('cannot get sub entity when it does not exist', assert => {
     const subEntity = e.entity("alternate");
 
     assert.false(siren.isSubEntityEmbeddedLink(subEntity));
+});
+
+test('can get sub entities by one rel and one class', assert => {
+    const e = siren.entity(entity);
+
+    const subEntities = e.entities("alternate", "myclass");
+
+    assert.equal(subEntities.length, 1);
+    assert.equal(subEntities[0].title, 'my sub entity');
+});
+
+test('can get sub entities by one rel and an array of class', assert => {
+    const e = siren.entity(entity);
+
+    const subEntities = e.entities("item", ["myclass", "mysecondclass"]);
+
+    assert.equal(subEntities.length, 1);
+    assert.deepEqual(subEntities[0].class, ["myclass", "mysecondclass"]);
 });
 
 ///////////////////////////////////////////////////////////////////////

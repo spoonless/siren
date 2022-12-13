@@ -180,17 +180,24 @@ class SirenEntity {
         return false;
     }
 
-    entities(rel) {
+    entities(rel, className) {
         if (!this[subEntitiesSymbol] && this[entitySymbol].entities) {
             this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[postConstructSymbol]));
         }
-        if (!rel) {
+        if (!rel && !className) {
             return this[subEntitiesSymbol] || [];
         }
         if (typeof rel === 'string') {
             rel = [rel];
         }
-        return this.entities().filter(e => areEqual(e.rel, rel));
+        if (typeof className === 'string') {
+            className = [className];
+        }
+        if (!className) {
+            return this.entities().filter(e => areEqual(e.rel, rel));
+        } else {
+            return this.entities().filter(e => areEqual(e.rel, rel)).filter(e => areEqual(e.class, className));
+        }
     }
 
     entity(rel) {
