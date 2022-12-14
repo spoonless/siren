@@ -3,7 +3,6 @@ import siren from '../index.js';
 const test = QUnit.test;
 
 let entity;
-let otherEntity;
 
 QUnit.module('siren', {
     beforeEach: function () {
@@ -305,7 +304,16 @@ QUnit.module('For sub-entities, siren', {
                 },
                 {
                     'rel': ['collection', 'search'],
-                    'href': 'http://localhost/fifth'
+                    'href': 'http://localhost/fifth',
+                    'type': 'text/plain'
+                }
+            ],
+            'links': [
+                {
+                    'class': ['myfirstclass'],
+                    'rel': ['alternate'],
+                    'href': 'http://localhost/link/first',
+                    'type': 'text/plain'
                 }
             ]
         };
@@ -422,6 +430,48 @@ test('can check sub entity by one rel and an array of class', assert => {
 
     assert.true(e.hasEntity("item", ["mythirdclass", "otherclass"]));
     assert.false(e.hasEntity("item", ["mythirdclass", "unexistingclass"]));
+});
+
+test('can query and check sub entity', assert => {
+    const e = siren.entity(entity);
+
+    assert.true(e.query.entities.withRel("item").exists());
+    assert.true(e.query.entities.withClass("mysecondclass").exists());
+    assert.true(e.query.entities.withRel("item").withClass("mythirdclass", "otherclass").exists());
+    assert.true(e.query.entities.withRel("item").withClass("mysecondclass").exists());
+    assert.true(e.query.entities.ofType("text/plain").exists());
+
+    assert.false(e.query.entities.withRel("unknown").exists());
+    assert.false(e.query.entities.withClass("unknown").exists());
+    assert.false(e.query.entities.withRel("item").withClass("mythirdclass", "unknown").exists());
+});
+
+test('can query and get sub entity', assert => {
+    const e = siren.entity(entity);
+
+    assert.equal(e.query.entities.withRel("item").get().href, "http://localhost/second");
+    assert.equal(e.query.entities.withClass("mysecondclass").get().href, "http://localhost/second");
+    assert.equal(e.query.entities.withRel("item").withClass("mythirdclass", "otherclass").get().href, "http://localhost/third");
+    assert.equal(e.query.entities.withRel("item").withClass("mysecondclass").get().href, "http://localhost/second");
+    assert.equal(e.query.entities.ofType("text/plain").withRel("search", "collection").get().href, "http://localhost/fifth");
+});
+
+test('can query and check links', assert => {
+    const e = siren.entity(entity);
+
+    assert.true(e.query.links.withRel("alternate").exists());
+    assert.true(e.query.links.withClass("myfirstclass").exists());
+    assert.true(e.query.links.withRel("alternate").withClass("myfirstclass").exists());
+    assert.true(e.query.links.ofType("text/plain").exists());
+});
+
+test('can query and get all entities and links', assert => {
+    const e = siren.entity(entity);
+
+    const result = e.query.entitiesAndLinks.ofType('text/plain').getAll()
+
+    assert.equal(result[0], e.entities()[4])
+    assert.equal(result[1], e.links()[0])
 });
 
 ///////////////////////////////////////////////////////////////////////

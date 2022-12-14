@@ -16,13 +16,106 @@ function areEqual(a, b) {
     }
 }
 
-class SirenEntity {
+/**
+ * The siren namespace
+ */
+const siren = {}
+
+class QueryBuilder {
+
+    constructor(listOfElements) {
+        /** @private */
+        this.listOfElements = listOfElements;
+        /** @private */
+        this.filters = [];
+    }
+
+    /**
+     * @param {...string} rel 
+     */
+    withRel(...rel) {
+        this.filters.push(e => areEqual(e.rel, rel));
+        return this;
+    }
+
+    /**
+     * @param {...string} classes 
+     */
+     withClass(...classes) {
+        this.filters.push(e => areEqual(e.class, classes));
+        return this;
+    }
+
+    /**
+     * @param {string} type 
+     */
+     ofType(type) {
+        this.filters.push(e => e.type === type);
+        return this;
+    }
+
+    /**
+     * @returns {Array}
+     */
+    getAll() {
+        const applyFilters = e => this.filters.every(f => f(e))
+        return this.listOfElements.filter(applyFilters);
+    }
+
+    /**
+     * @returns {boolean}
+     */
+     exists() {
+        return this.get() !== emptyEntity
+    }
+
+    /**
+     * @returns {Object}
+     */
+     get() {
+        const applyFilters = e => this.filters.every(f => f(e))
+        for (const e of this.listOfElements) {
+            if (applyFilters(e)) {
+                return e;
+            }
+        }
+        return emptyEntity;
+    }
+}
+
+export class SirenQuery {
+    constructor(e) {
+        /**
+         * @private
+         */
+        this.entity = siren.entity(e)
+    }
+
+    get entities() {
+        return new QueryBuilder(this.entity.entities());
+    }
+
+    get links() {
+        return new QueryBuilder(this.entity.links());
+    }
+
+    get entitiesAndLinks() {
+        return new QueryBuilder([...this.entity.entities(), ...this.entity.links()]);
+    }
+}
+
+export class SirenEntity {
+
     constructor(e, postConstructFn) {
         this[entitySymbol] = e;
         if (typeof postConstructFn === 'function') {
             this[postConstructSymbol] = postConstructFn;
             postConstructFn(this);
         }
+    }
+
+    get query() {
+        return new SirenQuery(this);
     }
 
     hasClass(c) {
@@ -38,6 +131,10 @@ class SirenEntity {
 
     get title() {
         return this[entitySymbol].title || '';
+    }
+
+    get type() {
+        return this[entitySymbol].type || '';
     }
 
     get properties() {
@@ -236,11 +333,6 @@ class SirenEntity {
 
 const emptyEntity = Object.freeze(new SirenEntity({}));
 const emptyLink = Object.freeze({});
-
-/**
- * The siren namespace
- */
-const siren = {}
 
 /**
  * Mime-type for Siren document
