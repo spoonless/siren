@@ -166,14 +166,23 @@ class SirenEntity {
         this[entitySymbol].links.push(link)
     }
 
-    hasEntity(rel) {
+    hasEntity(rel, className) {
         if (this[entitySymbol].entities) {
             if (typeof rel === 'string') {
                 rel = [rel];
             }
+            if (typeof className === 'string') {
+                className = [className];
+            }    
             for (const e of this[entitySymbol].entities) {
                 if (areEqual(e.rel, rel)) {
-                    return true;
+                    if (className) {
+                        if (areEqual(e.class, className)) {
+                            return true;
+                        }
+                    } else {
+                        return true;
+                    }
                 }
             }
         }
@@ -184,7 +193,7 @@ class SirenEntity {
         if (!this[subEntitiesSymbol] && this[entitySymbol].entities) {
             this[subEntitiesSymbol] = this[entitySymbol].entities.map(e => siren.entity(e, this[postConstructSymbol]));
         }
-        if (!rel && !className) {
+        if (!rel) {
             return this[subEntitiesSymbol] || [];
         }
         if (typeof rel === 'string') {
@@ -195,18 +204,26 @@ class SirenEntity {
         }
         if (!className) {
             return this.entities().filter(e => areEqual(e.rel, rel));
-        } else {
-            return this.entities().filter(e => areEqual(e.rel, rel)).filter(e => areEqual(e.class, className));
         }
+        return this.entities().filter(e => areEqual(e.rel, rel)).filter(e => areEqual(e.class, className));
     }
 
-    entity(rel) {
+    entity(rel, className) {
         if (typeof rel === 'string') {
             rel = [rel];
         }
+        if (typeof className === 'string') {
+            className = [className];
+        }
         for (const e of this.entities()) {
             if (areEqual(e.rel, rel)) {
-                return e;
+                if (className) {
+                    if (areEqual(e.class, className)) {
+                        return e;
+                    }
+                } else {
+                    return e;
+                }
             }
         }
         return emptyEntity;

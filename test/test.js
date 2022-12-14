@@ -284,19 +284,28 @@ QUnit.module('For sub-entities, siren', {
         entity = {
             'entities': [
                 {
-                    'class': ['myclass'],
-                    'title': 'my sub entity',
+                    'class': ['myfirstclass'],
                     'rel': ['alternate'],
-                    'href': 'http://localhost'
+                    'href': 'http://localhost/first'
                 },
                 {
-                    'class': ['myclass', 'mysecondclass'],
+                    'class': ['mysecondclass'],
                     'rel': ['item'],
-                    'href': 'http://localhost'
+                    'href': 'http://localhost/second'
+                },
+                {
+                    'class': ['mythirdclass', 'otherclass'],
+                    'rel': ['item'],
+                    'href': 'http://localhost/third'
+                },
+                {
+                    'class': ['myfourthclass'],
+                    'rel': ['item'],
+                    'href': 'http://localhost/fourth'
                 },
                 {
                     'rel': ['collection', 'search'],
-                    'href': 'http://localhost'
+                    'href': 'http://localhost/fifth'
                 }
             ]
         };
@@ -334,8 +343,8 @@ test('can get sub entity by rel', assert => {
 
     const subEntity = e.entity("alternate");
 
-    assert.equal(subEntity.title, 'my sub entity');
-    assert.true(subEntity.hasClass('myclass'));
+    assert.equal(subEntity.href, 'http://localhost/first');
+    assert.true(subEntity.hasClass('myfirstclass'));
     assert.true(siren.isEntity(subEntity));
     assert.true(siren.isSubEntity(subEntity));
     assert.true(siren.isSubEntityEmbeddedLink(subEntity));
@@ -347,7 +356,7 @@ test('can get sub entities by one rel', assert => {
     const subEntities = e.entities("alternate");
 
     assert.equal(subEntities.length, 1);
-    assert.equal(subEntities[0].title, 'my sub entity');
+    assert.equal(subEntities[0].href, 'http://localhost/first');
 });
 
 test('can get sub entities by an array of rel', assert => {
@@ -370,19 +379,49 @@ test('cannot get sub entity when it does not exist', assert => {
 test('can get sub entities by one rel and one class', assert => {
     const e = siren.entity(entity);
 
-    const subEntities = e.entities("alternate", "myclass");
+    const subEntities = e.entities("item", "myfourthclass");
 
     assert.equal(subEntities.length, 1);
-    assert.equal(subEntities[0].title, 'my sub entity');
+    assert.equal(subEntities[0].href, 'http://localhost/fourth');
 });
 
 test('can get sub entities by one rel and an array of class', assert => {
     const e = siren.entity(entity);
 
-    const subEntities = e.entities("item", ["myclass", "mysecondclass"]);
+    const subEntities = e.entities("item", ["mythirdclass", "otherclass"]);
 
     assert.equal(subEntities.length, 1);
-    assert.deepEqual(subEntities[0].class, ["myclass", "mysecondclass"]);
+    assert.deepEqual(subEntities[0].href, 'http://localhost/third');
+});
+
+test('can get sub entity by one rel and one class', assert => {
+    const e = siren.entity(entity);
+
+    const subEntity = e.entity("item", "myfourthclass");
+
+    assert.equal(subEntity.href, 'http://localhost/fourth');
+});
+
+test('can get sub entity by one rel and an array of class', assert => {
+    const e = siren.entity(entity);
+
+    const subEntity = e.entity("item", ["mythirdclass", "otherclass"]);
+
+    assert.deepEqual(subEntity.href, 'http://localhost/third');
+});
+
+test('can check sub entity by one rel and one class', assert => {
+    const e = siren.entity(entity);
+
+    assert.true(e.hasEntity("item", "myfourthclass"));
+    assert.false(e.hasEntity("item", "unexistingclass"));
+});
+
+test('can check sub entity by one rel and an array of class', assert => {
+    const e = siren.entity(entity);
+
+    assert.true(e.hasEntity("item", ["mythirdclass", "otherclass"]));
+    assert.false(e.hasEntity("item", ["mythirdclass", "unexistingclass"]));
 });
 
 ///////////////////////////////////////////////////////////////////////
