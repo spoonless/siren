@@ -1,4 +1,78 @@
+export class SirenQuery {
+    constructor(e: any);
+    /**
+     * @private
+     */
+    private entity;
+    get entities(): QueryBuilder;
+    get links(): QueryBuilder;
+    get entitiesAndLinks(): QueryBuilder;
+}
+export class SirenEntity {
+    constructor(e: any, postConstructFn: any);
+    get query(): SirenQuery;
+    hasClass(c: any): any;
+    get class(): any;
+    get title(): any;
+    get type(): any;
+    get properties(): any;
+    /**
+     * For entity and embedded sub entity, returns the href from self link (if existing).
+     * For sub entity, returns the href attribute.
+     */
+    get href(): any;
+    get rel(): any;
+    property(name: any, defaultValue: any): any;
+    setProperty(name: any, value: any): void;
+    links(param: any): any;
+    hasLink(param: any): boolean;
+    link(param: any): any;
+    setLink(link: any): void;
+    setLinkHref(rel: any, href: any): void;
+    addLink(link: any): void;
+    hasEntity(rel: any, className: any): boolean;
+    entities(rel: any, className: any): any;
+    entity(rel: any, className: any): any;
+    toJSON(): any;
+    [entitySymbol]: any;
+    [postConstructSymbol]: any;
+    [subEntitiesSymbol]: any;
+}
 export default siren;
+declare class QueryBuilder {
+    constructor(listOfElements: any);
+    /** @private */
+    private listOfElements;
+    /** @private */
+    private filters;
+    /**
+     * @param {...string} rel
+     */
+    withRel(...rel: string[]): QueryBuilder;
+    /**
+     * @param {...string} classes
+     */
+    withClass(...classes: string[]): QueryBuilder;
+    /**
+     * @param {string} type
+     */
+    ofType(type: string): QueryBuilder;
+    /**
+     * @returns {Array}
+     */
+    getAll(): any[];
+    /**
+     * @returns {boolean}
+     */
+    exists(): boolean;
+    /**
+     * @returns {Object}
+     */
+    get(): any;
+}
+declare const entitySymbol: unique symbol;
+declare const postConstructSymbol: unique symbol;
+declare const subEntitiesSymbol: unique symbol;
 declare namespace siren {
     const mimeType: string;
     /**
@@ -63,34 +137,3 @@ declare namespace siren {
      */
     function same(e1: any, e2: any): boolean;
 }
-declare class SirenEntity {
-    constructor(e: any, postConstructFn: any);
-    hasClass(c: any): any;
-    get class(): any;
-    get title(): any;
-    get properties(): any;
-    /**
-     * For entity and embedded sub entity, returns the href from self link (if existing).
-     * For sub entity, returns the href attribute.
-     */
-    get href(): any;
-    get rel(): any;
-    property(name: any, defaultValue: any): any;
-    setProperty(name: any, value: any): void;
-    links(param: any): any;
-    hasLink(param: any): boolean;
-    link(param: any): any;
-    setLink(link: any): void;
-    setLinkHref(rel: any, href: any): void;
-    addLink(link: any): void;
-    hasEntity(rel: any): boolean;
-    entities(rel: any): any;
-    entity(rel: any): any;
-    toJSON(): any;
-    [entitySymbol]: any;
-    [postConstructSymbol]: any;
-    [subEntitiesSymbol]: any;
-}
-declare const entitySymbol: unique symbol;
-declare const postConstructSymbol: unique symbol;
-declare const subEntitiesSymbol: unique symbol;
